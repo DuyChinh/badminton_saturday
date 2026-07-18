@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { formatCurrency } from '../utils/formatters';
+import { useAuth } from '../contexts/AuthContext';
 
 const PublicView = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('members'); // 'members' | 'guide'
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAll, setShowAll] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchMembers();
@@ -24,14 +28,24 @@ const PublicView = () => {
     }
   };
 
-  const filteredMembers = members.filter((m) => 
+  let displayMembers = members.filter((m) => 
     m.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     m.memberCode.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const unpaidMembers = filteredMembers.filter((m) => m.paymentStatus === 'unpaid');
-  const paidMembers = filteredMembers.filter((m) => m.paymentStatus === 'paid');
+  if (user && user.role === 'user' && !showAll) {
+    displayMembers = displayMembers.filter(m => m._id === user.id);
+  }
+
+  const unpaidMembers = displayMembers.filter((m) => m.paymentStatus === 'unpaid');
+  const paidMembers = displayMembers.filter((m) => m.paymentStatus === 'paid');
   const totalDue = unpaidMembers.reduce((sum, m) => sum + m.amountDue, 0);
+
+  const handleAvatarClick = (e, memberId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/profile/${memberId}`);
+  };
 
   return (
     <div className="w-full">
@@ -44,30 +58,52 @@ const PublicView = () => {
           </svg>
           Thanh toán <span className="text-primary">Sân Cầu</span>
         </h1>
-        <p className="text-muted text-lg max-w-xl mx-auto mb-8">
+        <p className="text-muted text-lg max-w-3xl mx-auto mb-8 px-4">
           Tìm và chọn tên của bạn trong danh sách để nhận mã QR chuyển khoản tự động. 
         </p>
 
-        {/* Compact Stats Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-surface p-3 sm:px-6 sm:py-4 rounded-2xl border border-border-color shadow-sm mb-6 animate-fade-in text-sm sm:text-base">
-          <div className="flex gap-4 sm:gap-8 flex-wrap">
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted">Tổng số:</span>
-              <span className="font-bold text-main">{members.length}</span>
+        {/* Stats and Note Container */}
+        <div className="flex flex-col xl:flex-row gap-4 mb-6 animate-fade-in">
+          {/* Compact Stats Bar */}
+          <div className="flex-1 flex flex-wrap items-center justify-between gap-4 bg-surface p-3 sm:px-6 sm:py-4 rounded-2xl border border-border-color shadow-sm text-sm sm:text-base">
+            <div className="flex gap-4 sm:gap-8 flex-wrap">
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted">Tổng số:</span>
+                <span className="font-bold text-main">{members.length}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted">Chưa đóng:</span>
+                <span className="font-bold text-danger">{members.filter(m => m.paymentStatus === 'unpaid').length}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted">Đã đóng:</span>
+                <span className="font-bold text-success">{members.filter(m => m.paymentStatus === 'paid').length}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted">Chưa đóng:</span>
-              <span className="font-bold text-danger">{members.filter(m => m.paymentStatus === 'unpaid').length}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted">Đã đóng:</span>
-              <span className="font-bold text-success">{members.filter(m => m.paymentStatus === 'paid').length}</span>
+            <div className="flex items-center gap-2 bg-bg-main px-4 py-1.5 rounded-lg border border-border-color">
+              <span className="text-muted">Tổng nợ:</span>
+              <span className="font-bold text-accent text-lg">{formatCurrency(members.filter(m => m.paymentStatus === 'unpaid').reduce((sum, m) => sum + m.amountDue, 0))}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 bg-bg-main px-4 py-1.5 rounded-lg border border-border-color">
-            <span className="text-muted">Tổng nợ:</span>
-            <span className="font-bold text-accent text-lg">{formatCurrency(members.filter(m => m.paymentStatus === 'unpaid').reduce((sum, m) => sum + m.amountDue, 0))}</span>
-          </div>
+
+          {/* Login Note */}
+          {!user && (
+            <div className="xl:w-[400px] bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-start gap-3 shadow-sm text-left">
+              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="text-sm text-muted">
+                <p className="font-bold text-main mb-1">Mẹo đăng nhập:</p>
+                <p className="leading-relaxed">Đăng nhập để đổi avatar và chỉ thấy giao dịch của mình.</p>
+                <div className="mt-2 text-xs font-mono bg-bg-main/50 p-2 rounded border border-primary/10 leading-relaxed">
+                  Pass mặc định: <span className="font-bold text-main">12345678</span><br/>
+                  Tên đăng nhập: <span className="italic text-primary">Tên của bạn không dấu (VD: trần thế chiến &rarr; chientt)</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -97,20 +133,32 @@ const PublicView = () => {
         </div>
 
         {activeTab === 'members' && (
-          <div className="relative w-full sm:w-80">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center w-full sm:w-auto">
+            {user && user.role === 'user' && (
+              <label className="flex items-center gap-2 cursor-pointer bg-surface px-4 py-2.5 rounded-xl border border-border-color shrink-0">
+                <div className="relative">
+                  <input type="checkbox" className="sr-only" checked={showAll} onChange={() => setShowAll(!showAll)} />
+                  <div className={`block w-10 h-6 rounded-full transition-colors ${showAll ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
+                  <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showAll ? 'transform translate-x-4' : ''}`}></div>
+                </div>
+                <span className="text-sm font-semibold text-main">Xem tất cả</span>
+              </label>
+            )}
+            <div className="relative w-full sm:w-80">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                className="input-field w-full"
+                style={{ paddingLeft: '2.5rem' }}
+                placeholder="Tìm kiếm tên hoặc mã..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              className="input-field w-full"
-              style={{ paddingLeft: '2.5rem' }}
-              placeholder="Tìm kiếm tên hoặc mã..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
           </div>
         )}
       </div>
@@ -147,14 +195,27 @@ const PublicView = () => {
                       <div className="absolute inset-0 bg-gradient-to-r from-danger/0 via-danger/5 to-danger/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
                       
                       <div className="flex items-center gap-4 relative z-10 min-w-0">
-                        <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center border border-border-color group-hover:border-danger/30 transition-colors shadow-sm shrink-0">
-                          <span className="text-lg font-bold text-main group-hover:text-danger transition-colors">
-                            {member.name.charAt(0)}
-                          </span>
+                        <div 
+                          className="relative w-16 h-16 sm:w-20 sm:h-20 bg-surface rounded-full flex items-center justify-center border border-border-color group-hover:border-danger/30 transition-colors shadow-sm shrink-0 overflow-hidden cursor-pointer"
+                          onClick={(e) => handleAvatarClick(e, member._id)}
+                        >
+                          {member.avatarUrl ? (
+                            <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-lg font-bold text-main group-hover:text-danger transition-colors">
+                              {member.name.charAt(0)}
+                            </span>
+                          )}
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                          </div>
                         </div>
                         <div className="min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                          <p className="font-bold text-main text-base sm:text-lg group-hover:text-primary transition-colors truncate">
+                          <p 
+                            className="font-bold text-main text-base sm:text-lg group-hover:text-primary transition-colors truncate cursor-pointer hover:underline"
+                            onClick={(e) => handleAvatarClick(e, member._id)}
+                          >
                             {member.name}
                           </p>
                           {member.note && (
@@ -210,14 +271,29 @@ const PublicView = () => {
                       className="glass-card p-4 sm:p-5 opacity-75 hover:opacity-100 transition-all flex items-center justify-between gap-4"
                     >
                       <div className="flex items-center gap-4 min-w-0">
-                        <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center border border-success/20 shrink-0">
-                          <span className="text-lg font-bold text-success">
-                            {member.name.charAt(0)}
-                          </span>
+                        <div 
+                          className="relative w-16 h-16 sm:w-20 sm:h-20 bg-success/10 rounded-full flex items-center justify-center border border-success/20 shrink-0 overflow-hidden cursor-pointer"
+                          onClick={(e) => handleAvatarClick(e, member._id)}
+                        >
+                          {member.avatarUrl ? (
+                            <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-lg font-bold text-success">
+                              {member.name.charAt(0)}
+                            </span>
+                          )}
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                          </div>
                         </div>
                         <div className="min-w-0">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                            <p className="font-bold text-main text-base sm:text-lg truncate">{member.name}</p>
+                            <p 
+                              className="font-bold text-main text-base sm:text-lg truncate cursor-pointer hover:underline hover:text-primary transition-colors"
+                              onClick={(e) => handleAvatarClick(e, member._id)}
+                            >
+                              {member.name}
+                            </p>
                             {member.note && (
                               <span className="text-xs sm:text-sm font-medium bg-amber-500/15 text-amber-500 px-2.5 py-0.5 rounded-md border border-amber-500/30">
                                 {member.note}
@@ -245,7 +321,7 @@ const PublicView = () => {
               </div>
             )}
 
-            {filteredMembers.length === 0 && (
+            {displayMembers.length === 0 && (
               <div className="text-center py-16 glass-card border-dashed">
                 <div className="w-20 h-20 bg-surface rounded-full flex items-center justify-center mx-auto mb-4 border border-border-color">
                   <svg className="w-10 h-10 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">

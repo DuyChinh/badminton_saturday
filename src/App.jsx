@@ -6,6 +6,7 @@ import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicView from './pages/PublicView';
 import LoginPage from './pages/LoginPage';
+import ProfilePage from './pages/ProfilePage';
 import AdminDashboard from './pages/AdminDashboard';
 import PaymentPage from './pages/PaymentPage';
 import TransactionHistory from './pages/TransactionHistory';
@@ -41,6 +42,15 @@ function App() {
               <Route path="/history" element={<TransactionHistory />} />
               <Route path="/news" element={<NewsBoard />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/profile/:id" element={<ProfilePage />} />
               <Route path="/payment/:memberId" element={<PaymentPage />} />
               <Route
                 path="/admin"

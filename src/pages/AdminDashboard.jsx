@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import toast from 'react-hot-toast';
@@ -16,6 +16,8 @@ const AdminDashboard = () => {
   const [formCode, setFormCode] = useState('');
   const [formAmount, setFormAmount] = useState('');
   const [formNote, setFormNote] = useState('');
+  const [formUsername, setFormUsername] = useState('');
+  const [formPassword, setFormPassword] = useState('');
 
   // Bulk update
   const [showBulkForm, setShowBulkForm] = useState(false);
@@ -24,10 +26,22 @@ const AdminDashboard = () => {
   // Delete confirm
   const [deleteTarget, setDeleteTarget] = useState(null);
 
+  // Avatar update
+  const fileInputRef = useRef(null);
+  const [avatarTarget, setAvatarTarget] = useState(null);
+
+  // Transaction Filters
+  const [txSearch, setTxSearch] = useState('');
+  const [txMonth, setTxMonth] = useState('');
+  const [txYear, setTxYear] = useState(new Date().getFullYear().toString());
+
   useEffect(() => {
     fetchMembers();
-    fetchTransactions();
   }, []);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [txMonth, txYear]);
 
   const fetchMembers = async () => {
     try {
@@ -42,10 +56,52 @@ const AdminDashboard = () => {
 
   const fetchTransactions = async () => {
     try {
-      const res = await api.get('/payments/transactions');
+      const res = await api.get('/payments/transactions', {
+        params: { search: txSearch, month: txMonth, year: txYear, limit: 100 }
+      });
       setTransactions(res.data.data || []);
     } catch (error) {
       console.error('Fetch transactions error:', error);
+    }
+  };
+
+  const handleTxSearch = (e) => {
+    e.preventDefault();
+    fetchTransactions();
+  };
+
+  const handleAvatarClick = (member) => {
+    setAvatarTarget(member);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !avatarTarget) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Ảnh không được vượt quá 5MB');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+    formData.append('memberId', avatarTarget._id);
+
+    try {
+      toast.loading('Đang tải ảnh lên...', { id: 'uploadAvatar' });
+      await api.post('/users/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      toast.success(`Cập nhật avatar cho ${avatarTarget.name} thành công!`, { id: 'uploadAvatar' });
+      fetchMembers();
+    } catch (error) {
+      toast.error('Lỗi khi cập nhật avatar', { id: 'uploadAvatar' });
+    } finally {
+      setAvatarTarget(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -63,6 +119,8 @@ const AdminDashboard = () => {
         const updateData = { name: formName, note: formNote };
         if (formCode.trim()) updateData.memberCode = formCode;
         if (formAmount !== '') updateData.amountDue = Number(formAmount);
+        if (formUsername.trim() !== '') updateData.username = formUsername;
+        if (formPassword.trim()) updateData.password = formPassword;
         
         await api.put(`/members/${editingMember._id}`, updateData);
         toast.success('Cập nhật thành công!');
@@ -71,6 +129,8 @@ const AdminDashboard = () => {
         const createData = { name: formName, note: formNote };
         if (formCode.trim()) createData.memberCode = formCode;
         if (formAmount !== '') createData.amountDue = Number(formAmount);
+        if (formUsername.trim()) createData.username = formUsername;
+        if (formPassword.trim()) createData.password = formPassword;
         
         await api.post('/members', createData);
         toast.success('Thêm thành viên thành công!');
@@ -88,6 +148,8 @@ const AdminDashboard = () => {
     setFormCode(member.memberCode);
     setFormAmount(member.amountDue.toString());
     setFormNote(member.note || '');
+    setFormUsername(member.username || '');
+    setFormPassword(''); // don't load password
     setShowForm(true);
   };
 
@@ -139,6 +201,8 @@ const AdminDashboard = () => {
     setFormCode('');
     setFormAmount('');
     setFormNote('');
+    setFormUsername('');
+    setFormPassword('');
   };
 
   const unpaidCount = members.filter((m) => m.paymentStatus === 'unpaid').length;
@@ -236,6 +300,7 @@ const AdminDashboard = () => {
                   onEdit={() => handleEdit(member)}
                   onDelete={() => setDeleteTarget(member)}
                   onUpdateAmount={handleUpdateAmount}
+                  onUpdateAvatar={() => handleAvatarClick(member)}
                 />
               ))}
             </div>
@@ -246,6 +311,46 @@ const AdminDashboard = () => {
       {/* Transactions Tab */}
       {activeTab === 'transactions' && (
         <div className="animate-fade-in">
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <form onSubmit={handleTxSearch} className="flex-1">
+              <div className="relative">
+                <input
+                  type="text"
+                  className="input-field w-full pl-10"
+                  placeholder="Tìm kiếm giao dịch..."
+                  value={txSearch}
+                  onChange={(e) => setTxSearch(e.target.value)}
+                />
+                <svg className="w-5 h-5 text-muted absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </form>
+            <div className="flex gap-4">
+              <select
+                className="input-field"
+                value={txMonth}
+                onChange={(e) => setTxMonth(e.target.value)}
+              >
+                <option value="">Tất cả các tháng</option>
+                {[...Array(12)].map((_, i) => (
+                  <option key={i+1} value={i+1}>Tháng {i+1}</option>
+                ))}
+              </select>
+              <select
+                className="input-field"
+                value={txYear}
+                onChange={(e) => setTxYear(e.target.value)}
+              >
+                <option value="">Tất cả các năm</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+              </select>
+            </div>
+          </div>
+
           {transactions.length === 0 ? (
             <div className="glass-card p-12 text-center">
               <span className="text-5xl mb-4 block">📜</span>
@@ -257,12 +362,16 @@ const AdminDashboard = () => {
                 <div key={tx._id} className="glass-card p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                         tx.status === 'success'
-                          ? 'bg-success/15 border border-success/20'
-                          : 'bg-warning/15 border border-warning/20'
+                          ? 'bg-success/15 border border-success/20 text-success'
+                          : 'bg-warning/15 border border-warning/20 text-warning'
                       }`}>
-                        <span>{tx.status === 'success' ? '✅' : '⚠️'}</span>
+                        {tx.memberId?.avatarUrl ? (
+                          <img src={tx.memberId.avatarUrl} alt="avatar" className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <span>{tx.status === 'success' ? '✅' : '⚠️'}</span>
+                        )}
                       </div>
                       <div>
                         <p className="font-semibold text-main text-sm">
@@ -329,6 +438,34 @@ const AdminDashboard = () => {
                   placeholder="VD: 50000 (Bỏ trống = 0)"
                   min="0"
                 />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-muted mb-1.5">
+                    Tên đăng nhập
+                  </label>
+                  <input
+                    type="text"
+                    value={formUsername}
+                    onChange={(e) => setFormUsername(e.target.value)}
+                    className="input-field"
+                    placeholder="VD: nguyenvana"
+                    autoComplete="off"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-muted mb-1.5">
+                    Mật khẩu
+                  </label>
+                  <input
+                    type="password"
+                    value={formPassword}
+                    onChange={(e) => setFormPassword(e.target.value)}
+                    className="input-field"
+                    placeholder={editingMember ? "(Bỏ trống để giữ nguyên)" : "Mật khẩu cho user..."}
+                    autoComplete="new-password"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-muted mb-1.5">
@@ -414,12 +551,21 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Hidden File Input for Avatar */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+      />
     </div>
   );
 };
 
 // ===== Member Row Component =====
-const MemberRow = ({ member, onEdit, onDelete, onUpdateAmount }) => {
+const MemberRow = ({ member, onEdit, onDelete, onUpdateAmount, onUpdateAvatar }) => {
   const [amount, setAmount] = useState(member.amountDue.toString());
   const [isEditing, setIsEditing] = useState(false);
 
@@ -434,16 +580,26 @@ const MemberRow = ({ member, onEdit, onDelete, onUpdateAmount }) => {
     <div className="glass-card p-4 sm:p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-            member.paymentStatus === 'paid'
-              ? 'bg-success/15 border border-success/20'
-              : 'bg-danger/15 border border-danger/20'
-          }`}>
-            <span className={`font-bold ${
-              member.paymentStatus === 'paid' ? 'text-success' : 'text-danger'
-            }`}>
-              {member.name.charAt(0)}
-            </span>
+          <div 
+            className="relative w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 group cursor-pointer border-2 border-border-color hover:border-primary transition-colors"
+            onClick={onUpdateAvatar}
+            title="Đổi avatar"
+          >
+            {member.avatarUrl ? (
+              <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className={`w-full h-full flex items-center justify-center font-bold text-lg ${
+                member.paymentStatus === 'paid' ? 'bg-success/15 text-success' : 'bg-danger/15 text-danger'
+              }`}>
+                {member.name.charAt(0)}
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
           </div>
           <div className="min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
@@ -454,7 +610,14 @@ const MemberRow = ({ member, onEdit, onDelete, onUpdateAmount }) => {
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted font-mono mt-0.5">#{member.memberCode}</p>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <p className="text-xs text-muted font-mono">#{member.memberCode}</p>
+              {member.username && (
+                <span className="text-xs font-medium bg-primary/10 text-primary-light px-2 py-0.5 rounded border border-primary/20">
+                  👤 {member.username}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

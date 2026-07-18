@@ -1,11 +1,20 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useState, useEffect } from 'react';
+import ChangePasswordModal from './ChangePasswordModal';
 
 const Layout = ({ children }) => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user, isAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+  useEffect(() => {
+    if (user && user.isFirstLogin && user.role === 'user') {
+      setShowPasswordModal(true);
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen flex flex-col transition-colors duration-300">
@@ -27,7 +36,7 @@ const Layout = ({ children }) => {
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-surface-hover transition-colors text-muted hover:text-main"
+              className="p-2 rounded-lg hover:bg-surface-hover transition-colors text-muted hover:text-main cursor-pointer"
               aria-label="Toggle Dark Mode"
             >
               {theme === 'dark' ? (
@@ -76,24 +85,42 @@ const Layout = ({ children }) => {
               </Link>
               
               {isAuthenticated ? (
-                <>
-                  <Link
-                    to="/admin"
-                    className={`px-4 py-2 rounded-xl transition-all ${
-                      location.pathname.includes('/admin') 
-                        ? 'bg-primary text-white shadow-md shadow-primary/20' 
-                        : 'text-muted hover:text-primary hover:bg-primary/10'
-                    }`}
-                  >
-                    Admin
+                <div className="flex items-center gap-3 ml-1 sm:ml-2 border-l border-border-color pl-2 sm:pl-3">
+                  <Link to={isAdmin ? "/admin" : "/profile"} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt="avatar" className="w-8 h-8 rounded-full object-cover border border-border-color" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                        {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                      </div>
+                    )}
+                    <span className="text-sm font-bold text-main hidden md:block">
+                      {user?.name || user?.username}
+                    </span>
                   </Link>
+
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      className={`hidden sm:block px-3 py-1.5 rounded-lg transition-all text-xs font-bold ${
+                        location.pathname.includes('/admin') 
+                          ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                          : 'text-muted hover:text-primary hover:bg-primary/10'
+                      }`}
+                    >
+                      Admin
+                    </Link>
+                  )}
                   <button
                     onClick={logout}
-                    className="px-4 py-2 rounded-xl text-danger hover:text-white hover:bg-danger transition-all shadow-sm"
+                    className="p-1.5 rounded-lg text-danger hover:text-white hover:bg-danger transition-all shadow-sm cursor-pointer"
+                    title="Đăng xuất"
                   >
-                    Đăng xuất
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
                   </button>
-                </>
+                </div>
               ) : (
                 <Link
                   to="/login"
@@ -132,6 +159,13 @@ const Layout = ({ children }) => {
           </p>
         </div>
       </footer>
+
+      {/* Change Password Modal for First Login */}
+      <ChangePasswordModal 
+        isOpen={showPasswordModal} 
+        onClose={() => setShowPasswordModal(false)}
+        isFirstLogin={user?.isFirstLogin}
+      />
     </div>
   );
 };

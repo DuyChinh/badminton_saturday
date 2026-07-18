@@ -19,9 +19,13 @@ const LoginPage = () => {
 
     setIsLoading(true);
     try {
-      await login(username, password);
+      const user = await login(username, password);
       toast.success('Đăng nhập thành công!');
-      navigate('/admin');
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Đăng nhập thất bại');
     } finally {
@@ -39,8 +43,8 @@ const LoginPage = () => {
               <path d="M12.9 6.858l4.242 4.243-9.9 9.9H3v-4.243l9.9-9.9zm1.414-1.414l2.121-2.122a1 1 0 011.414 0l2.829 2.829a1 1 0 010 1.414l-2.122 2.121-4.242-4.242z"/>
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-main">Đăng nhập Admin</h2>
-          <p className="text-muted mt-2">Quản lý thanh toán sân cầu lông</p>
+          <h2 className="text-2xl font-bold text-main">Đăng nhập</h2>
+          <p className="text-muted mt-2">Dành cho Quản trị viên & Thành viên</p>
         </div>
 
         {/* Login Form */}
@@ -100,9 +104,6 @@ const LoginPage = () => {
           </form>
         </div>
 
-        <p className="text-center text-muted text-sm mt-6">
-          Chỉ dành cho quản trị viên
-        </p>
       </div>
     </div>
   );
