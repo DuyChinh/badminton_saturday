@@ -18,6 +18,7 @@ const PaymentPage = () => {
   const [error, setError] = useState('');
   const [imgLoaded, setImgLoaded] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(15);
 
   useEffect(() => {
     fetchQR();
@@ -33,9 +34,6 @@ const PaymentPage = () => {
         if (currentMember.paymentStatus === 'paid') {
           clearInterval(intervalId);
           setPaymentSuccess(true);
-          setTimeout(() => {
-            navigate('/');
-          }, 15000);
         }
       } catch (err) {
         console.error('Polling error:', err);
@@ -43,7 +41,19 @@ const PaymentPage = () => {
     }, 3000);
 
     return () => clearInterval(intervalId);
-  }, [memberId, navigate]);
+  }, [memberId]);
+
+  useEffect(() => {
+    let timer;
+    if (paymentSuccess && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (paymentSuccess && countdown <= 0) {
+      navigate('/');
+    }
+    return () => clearInterval(timer);
+  }, [paymentSuccess, countdown, navigate]);
 
   const fetchQR = async () => {
     try {
@@ -115,7 +125,7 @@ const PaymentPage = () => {
             <Link to="/" className="btn-primary w-full py-3">
               Về trang chủ ngay
             </Link>
-            <p className="text-xs text-muted animate-pulse">Tự động chuyển về trang chủ sau 15 giây...</p>
+            <p className="text-xs text-muted animate-pulse">Tự động chuyển về trang chủ sau {countdown} giây...</p>
           </div>
         </div>
       </div>
