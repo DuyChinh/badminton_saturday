@@ -196,7 +196,7 @@ const NewsBoard = () => {
           Bảng tin <span className="text-accent">Giải đấu</span>
         </h1>
         <p className="text-muted text-lg max-w-xl mx-auto">
-          Cập nhật tin tức, kết quả và thể lệ các giải đấu nội bộ của Sân Cầu.
+          Cập nhật tin tức, kết quả và thể lệ các giải đấu nội bộ của Saturday badminton club.
         </p>
       </div>
 
