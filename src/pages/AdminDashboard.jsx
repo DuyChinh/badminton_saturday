@@ -193,7 +193,7 @@ const AdminDashboard = () => {
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => setActiveTab('members')}
-          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
             activeTab === 'members'
               ? 'bg-primary/20 text-primary-light border border-primary/30'
               : 'text-muted hover:text-main hover:bg-surface-hover'
@@ -203,7 +203,7 @@ const AdminDashboard = () => {
         </button>
         <button
           onClick={() => setActiveTab('transactions')}
-          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
             activeTab === 'transactions'
               ? 'bg-primary/20 text-primary-light border border-primary/30'
               : 'text-muted hover:text-main hover:bg-surface-hover'
