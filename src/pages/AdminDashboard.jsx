@@ -15,6 +15,7 @@ const AdminDashboard = () => {
   const [formName, setFormName] = useState('');
   const [formCode, setFormCode] = useState('');
   const [formAmount, setFormAmount] = useState('');
+  const [formNote, setFormNote] = useState('');
 
   // Bulk update
   const [showBulkForm, setShowBulkForm] = useState(false);
@@ -59,7 +60,7 @@ const AdminDashboard = () => {
     try {
       if (editingMember) {
         // Update
-        const updateData = { name: formName };
+        const updateData = { name: formName, note: formNote };
         if (formCode.trim()) updateData.memberCode = formCode;
         if (formAmount !== '') updateData.amountDue = Number(formAmount);
         
@@ -67,8 +68,9 @@ const AdminDashboard = () => {
         toast.success('Cập nhật thành công!');
       } else {
         // Create
-        const createData = { name: formName };
+        const createData = { name: formName, note: formNote };
         if (formCode.trim()) createData.memberCode = formCode;
+        if (formAmount !== '') createData.amountDue = Number(formAmount);
         
         await api.post('/members', createData);
         toast.success('Thêm thành viên thành công!');
@@ -85,6 +87,7 @@ const AdminDashboard = () => {
     setFormName(member.name);
     setFormCode(member.memberCode);
     setFormAmount(member.amountDue.toString());
+    setFormNote(member.note || '');
     setShowForm(true);
   };
 
@@ -135,6 +138,7 @@ const AdminDashboard = () => {
     setFormName('');
     setFormCode('');
     setFormAmount('');
+    setFormNote('');
   };
 
   const unpaidCount = members.filter((m) => m.paymentStatus === 'unpaid').length;
@@ -313,24 +317,31 @@ const AdminDashboard = () => {
                   placeholder="VD: NGUYENVANA"
                 />
               </div>
-              {editingMember && (
-                <div>
-                  <label className="block text-sm font-medium text-muted mb-1.5">
-                    Số tiền cần thanh toán (đ)
-                  </label>
-                  <input
-                    type="number"
-                    value={formAmount}
-                    onChange={(e) => setFormAmount(e.target.value)}
-                    className="input-field"
-                    placeholder="VD: 50000"
-                    min="0"
-                  />
-                  <p className="text-xs text-muted mt-1">
-                    Nếu {'>'} 0 sẽ tự động chuyển trạng thái về "Chưa thanh toán"
-                  </p>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-muted mb-1.5">
+                  Số tiền nợ ban đầu (đ)
+                </label>
+                <input
+                  type="number"
+                  value={formAmount}
+                  onChange={(e) => setFormAmount(e.target.value)}
+                  className="input-field"
+                  placeholder="VD: 50000 (Bỏ trống = 0)"
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-muted mb-1.5">
+                  Ghi chú
+                </label>
+                <input
+                  type="text"
+                  value={formNote}
+                  onChange={(e) => setFormNote(e.target.value)}
+                  className="input-field"
+                  placeholder="VD: Khách của A..."
+                />
+              </div>
               <div className="flex gap-3 pt-2">
                 <button type="submit" className="btn-primary flex-1">
                   {editingMember ? 'Cập nhật' : 'Thêm mới'}
@@ -435,8 +446,15 @@ const MemberRow = ({ member, onEdit, onDelete, onUpdateAmount }) => {
             </span>
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-main truncate">{member.name}</p>
-            <p className="text-xs text-muted font-mono">#{member.memberCode}</p>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+              <p className="font-semibold text-main truncate">{member.name}</p>
+              {member.note && (
+                <span className="text-xs sm:text-sm font-medium bg-amber-500/15 text-amber-500 px-2.5 py-0.5 rounded-md border border-amber-500/30">
+                  {member.note}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted font-mono mt-0.5">#{member.memberCode}</p>
           </div>
         </div>
 

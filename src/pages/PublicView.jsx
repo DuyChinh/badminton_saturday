@@ -153,15 +153,17 @@ const PublicView = () => {
                           </span>
                         </div>
                         <div className="min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                           <p className="font-bold text-main text-base sm:text-lg group-hover:text-primary transition-colors truncate">
                             {member.name}
                           </p>
-                          <p className="text-sm text-muted font-mono flex items-center gap-1">
-                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                            </svg>
-                            {member.memberCode}
-                          </p>
+                          {member.note && (
+                            <span className="text-xs sm:text-sm font-medium bg-amber-500/15 text-amber-500 px-2.5 py-0.5 rounded-md border border-amber-500/30">
+                              {member.note}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted font-mono mt-0.5">#{member.memberCode}</p>
                         </div>
                       </div>
 
@@ -207,15 +209,22 @@ const PublicView = () => {
                       key={member._id}
                       className="glass-card p-4 sm:p-5 opacity-75 hover:opacity-100 transition-all flex items-center justify-between gap-4"
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 min-w-0">
                         <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center border border-success/20 shrink-0">
                           <span className="text-lg font-bold text-success">
                             {member.name.charAt(0)}
                           </span>
                         </div>
-                        <div>
-                          <p className="font-semibold text-main text-base sm:text-lg">{member.name}</p>
-                          <p className="text-sm text-muted font-mono">#{member.memberCode}</p>
+                        <div className="min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                            <p className="font-bold text-main text-base sm:text-lg truncate">{member.name}</p>
+                            {member.note && (
+                              <span className="text-xs sm:text-sm font-medium bg-amber-500/15 text-amber-500 px-2.5 py-0.5 rounded-md border border-amber-500/30">
+                                {member.note}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted font-mono mt-0.5">#{member.memberCode}</p>
                         </div>
                       </div>
                       

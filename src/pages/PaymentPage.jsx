@@ -35,7 +35,7 @@ const PaymentPage = () => {
           setPaymentSuccess(true);
           setTimeout(() => {
             navigate('/');
-          }, 5000);
+          }, 15000);
         }
       } catch (err) {
         console.error('Polling error:', err);
@@ -115,7 +115,7 @@ const PaymentPage = () => {
             <Link to="/" className="btn-primary w-full py-3">
               Về trang chủ ngay
             </Link>
-            <p className="text-xs text-muted animate-pulse">Tự động chuyển về trang chủ sau 5 giây...</p>
+            <p className="text-xs text-muted animate-pulse">Tự động chuyển về trang chủ sau 15 giây...</p>
           </div>
         </div>
       </div>
