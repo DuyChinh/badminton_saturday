@@ -10,12 +10,27 @@ const PublicView = () => {
   const [activeTab, setActiveTab] = useState('members'); // 'members' | 'guide'
   const [searchQuery, setSearchQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const [feeConfig, setFeeConfig] = useState({ date: '', courtFee: '', shuttleFee: '' });
+  const [isEditingFee, setIsEditingFee] = useState(false);
+  const [editFeeForm, setEditFeeForm] = useState({ date: '', courtFee: '', shuttleFee: '' });
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchMembers();
+    fetchFeeConfig();
   }, []);
+
+  const fetchFeeConfig = async () => {
+    try {
+      const res = await api.get('/fee-config');
+      if (res.data.data) {
+        setFeeConfig(res.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching fee config:', error);
+    }
+  };
 
   const fetchMembers = async () => {
     try {
@@ -45,6 +60,35 @@ const PublicView = () => {
     e.preventDefault();
     e.stopPropagation();
     navigate(`/profile/${memberId}`);
+  };
+
+  const handleEditFeeClick = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const daysUntilSaturday = (6 - dayOfWeek + 7) % 7;
+    const nextSaturday = new Date(today);
+    nextSaturday.setDate(today.getDate() + daysUntilSaturday);
+    const defaultDate = nextSaturday.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    setEditFeeForm({
+      date: feeConfig.date || defaultDate,
+      courtFee: feeConfig.courtFee || '100k',
+      shuttleFee: feeConfig.shuttleFee || '100k'
+    });
+    setIsEditingFee(true);
+  };
+
+  const handleSaveFeeConfig = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await api.put('/fee-config', editFeeForm);
+      setFeeConfig(res.data.data);
+      setIsEditingFee(false);
+      import('react-hot-toast').then(toast => toast.default.success('Đã lưu thông báo phí'));
+    } catch (error) {
+      console.error('Error saving fee config:', error);
+      import('react-hot-toast').then(toast => toast.default.error('Lỗi khi lưu thông báo phí'));
+    }
   };
 
   return (
@@ -86,26 +130,119 @@ const PublicView = () => {
             </div>
           </div>
 
-          {/* Login Note */}
-          {!user && (
+          {/* Login Note or Fee Config */}
+          {user ? (
+            <div className="xl:w-[400px] bg-primary/5 border border-primary/20 rounded-2xl p-4 flex flex-col justify-center relative shadow-sm text-center">
+              {user.role === 'admin' && (
+                <button 
+                  onClick={handleEditFeeClick}
+                  className="absolute top-2 right-2 text-primary hover:text-primary-dark p-1 rounded-full hover:bg-primary/10 transition-colors cursor-pointer"
+                  title="Chỉnh sửa thông báo phí"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                </button>
+              )}
+              <h3 className="text-lg font-bold text-main mb-1 text-primary">{feeConfig.date || 'Chưa có thông báo'}</h3>
+              <div className="flex justify-center gap-6 mt-1">
+                <div className="text-sm">
+                  <span className="text-muted block text-xs">Tiền sân</span>
+                  <span className="font-bold text-main">{feeConfig.courtFee || '0'}</span>
+                </div>
+                <div className="text-sm">
+                  <span className="text-muted block text-xs">Tiền cầu</span>
+                  <span className="font-bold text-main">{feeConfig.shuttleFee || '0'}</span>
+                </div>
+              </div>
+            </div>
+          ) : (
             <div className="xl:w-[400px] bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-start gap-3 shadow-sm text-left">
               <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div className="text-sm text-muted">
-                <p className="font-bold text-main mb-1">Mẹo đăng nhập:</p>
-                <p className="leading-relaxed">Đăng nhập để đổi avatar và chỉ thấy giao dịch của mình.</p>
+              <div className="text-sm text-muted flex-1 flex flex-col justify-center">
+                <div className="flex justify-between items-center mb-1">
+                  <p className="font-bold text-main">Thông báo phí: <span className="text-primary">{feeConfig.date}</span></p>
+                </div>
+                <div className="flex gap-4 mb-2">
+                  <span>Sân: <b className="text-main">{feeConfig.courtFee}</b></span>
+                  <span>Cầu: <b className="text-main">{feeConfig.shuttleFee}</b></span>
+                </div>
+                
+                <p className="leading-relaxed text-xs mt-1 border-t border-border-color pt-2">
+                  <span className="font-bold text-main">Mẹo đăng nhập:</span> Đăng nhập để đổi avatar và chỉ thấy giao dịch của mình.
+                </p>
                 <div className="mt-2 text-xs font-mono bg-bg-main/50 p-2 rounded border border-primary/10 leading-relaxed">
                   Pass mặc định: <span className="font-bold text-main">12345678</span><br/>
-                  Tên đăng nhập: <span className="italic text-primary">Tên của bạn không dấu (VD: trần thế chiến &rarr; chientt)</span>
+                  Tên đăng nhập: <span className="italic text-primary">Tên không dấu (VD: trần thế chiến &rarr; chientt)</span>
                 </div>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Admin Edit Fee Modal */}
+      {isEditingFee && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-surface rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-scale-up">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-main">Sửa thông báo phí</h2>
+              <button 
+                onClick={() => setIsEditingFee(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-bg-main text-muted transition-colors cursor-pointer"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <form onSubmit={handleSaveFeeConfig} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-main mb-1.5">Ngày áp dụng</label>
+                <input 
+                  type="text" 
+                  value={editFeeForm.date}
+                  onChange={(e) => setEditFeeForm({...editFeeForm, date: e.target.value})}
+                  className="input-field w-full text-center font-mono"
+                  placeholder="VD: 18/07/2026"
+                />
+                <p className="text-[11px] text-muted mt-1 text-center">Gợi ý mặc định là Thứ 7 gần nhất</p>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-main mb-1.5">Tiền sân</label>
+                  <input 
+                    type="text" 
+                    value={editFeeForm.courtFee}
+                    onChange={(e) => setEditFeeForm({...editFeeForm, courtFee: e.target.value})}
+                    className="input-field w-full text-center"
+                    placeholder="VD: 100k"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-main mb-1.5">Tiền cầu</label>
+                  <input 
+                    type="text" 
+                    value={editFeeForm.shuttleFee}
+                    onChange={(e) => setEditFeeForm({...editFeeForm, shuttleFee: e.target.value})}
+                    className="input-field w-full text-center"
+                    placeholder="VD: 100(cầu)"
+                  />
+                </div>
+              </div>
+              
+              <div className="pt-2">
+                <button type="submit" className="btn-primary w-full py-2.5">
+                  Lưu thay đổi
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8 animate-fade-in">

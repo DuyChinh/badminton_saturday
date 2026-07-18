@@ -3,6 +3,9 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { formatDate } from '../utils/formatters';
+import CommentSection from '../components/CommentSection';
+import PostReaction from '../components/PostReaction';
+import { getGuestId } from '../utils/guest';
 
 const NewsBoard = () => {
   const { user } = useAuth();
@@ -27,12 +30,12 @@ const NewsBoard = () => {
   const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
-    fetchPosts();
+    fetchPosts(true);
   }, [selectedSeason, sortOrder]);
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const res = await api.get('/posts', {
         params: { season: selectedSeason, sort: sortOrder }
       });
@@ -45,7 +48,7 @@ const NewsBoard = () => {
     } catch (error) {
       toast.error('Không thể tải bảng tin');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -154,7 +157,7 @@ const NewsBoard = () => {
         toast.success('Đăng bài thành công!');
       }
       handleCancelEdit();
-      fetchPosts();
+      fetchPosts(false);
     } catch (error) {
       toast.error('Lỗi khi lưu bài viết');
     } finally {
@@ -167,9 +170,19 @@ const NewsBoard = () => {
     try {
       await api.delete(`/posts/${postId}`);
       toast.success('Xóa bài thành công');
-      fetchPosts();
+      fetchPosts(false);
     } catch (error) {
       toast.error('Lỗi khi xóa bài');
+    }
+  };
+
+  const handleReactPost = async (postId, type) => {
+    try {
+      const guestId = user ? undefined : getGuestId();
+      await api.post(`/posts/${postId}/react`, { type, guestId });
+      fetchPosts(false);
+    } catch (error) {
+      toast.error('Lỗi thả cảm xúc');
     }
   };
 
@@ -378,9 +391,7 @@ const NewsBoard = () => {
                       {post.author?.avatarUrl ? (
                         <img src={post.author.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xl">
-                          {post.author?.name?.charAt(0) || '?'}
-                        </div>
+                        <img src={`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${encodeURIComponent(post.author?.name || 'admin')}`} alt="avatar" className="w-full h-full object-cover p-1 bg-surface" />
                       )}
                     </div>
                     <div className="flex flex-col justify-center">
@@ -398,7 +409,7 @@ const NewsBoard = () => {
                     <div className="flex items-center gap-1">
                       <button 
                         onClick={() => handleEdit(post)}
-                        className="text-muted hover:text-primary p-2 rounded-lg hover:bg-primary/10 transition-colors"
+                        className="text-muted hover:text-primary p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer"
                         title="Sửa bài viết"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -407,7 +418,7 @@ const NewsBoard = () => {
                       </button>
                       <button 
                         onClick={() => handleDelete(post._id)}
-                        className="text-muted hover:text-danger p-2 rounded-lg hover:bg-danger/10 transition-colors"
+                        className="text-muted hover:text-danger p-2 rounded-lg hover:bg-danger/10 transition-colors cursor-pointer"
                         title="Xóa bài viết"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -445,6 +456,17 @@ const NewsBoard = () => {
                     return null;
                   })}
                 </div>
+
+                {/* Post Reactions */}
+                <PostReaction 
+                  post={post} 
+                  onReact={handleReactPost} 
+                  currentUser={user} 
+                  guestId={!user ? getGuestId() : undefined} 
+                />
+
+                {/* Comment Section */}
+                <CommentSection postId={post._id} />
 
               </div>
             ))

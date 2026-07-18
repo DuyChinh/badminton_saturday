@@ -221,6 +221,14 @@ body {
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
+select.input-field {
+  cursor: pointer;
+}
+
+select.input-field option {
+  cursor: pointer;
+}
+
 .badge-paid {
   background: rgba(16, 185, 129, 0.15);
   color: var(--success);
