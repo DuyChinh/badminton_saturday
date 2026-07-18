@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PaymentPage from './pages/PaymentPage';
 import TransactionHistory from './pages/TransactionHistory';
+import NewsBoard from './pages/NewsBoard';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
             <Routes>
               <Route path="/" element={<PublicView />} />
               <Route path="/history" element={<TransactionHistory />} />
+              <Route path="/news" element={<NewsBoard />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/payment/:memberId" element={<PaymentPage />} />
               <Route

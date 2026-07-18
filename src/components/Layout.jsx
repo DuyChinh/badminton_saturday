@@ -54,6 +54,17 @@ const Layout = ({ children }) => {
               </Link>
               
               <Link
+                to="/news"
+                className={`hidden sm:block px-4 py-2 rounded-xl transition-all ${
+                  location.pathname === '/news' 
+                    ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                    : 'text-muted hover:text-primary hover:bg-primary/10'
+                }`}
+              >
+                Bảng tin
+              </Link>
+              
+              <Link
                 to="/history"
                 className={`hidden sm:block px-4 py-2 rounded-xl transition-all ${
                   location.pathname === '/history' 
