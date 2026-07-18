@@ -17,6 +17,7 @@ const PaymentPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   useEffect(() => {
     fetchQR();
@@ -31,8 +32,10 @@ const PaymentPage = () => {
         const currentMember = res.data.data;
         if (currentMember.paymentStatus === 'paid') {
           clearInterval(intervalId);
-          toast.success('Đã thanh toán thành công. Cảm ơn bạn, chúc bạn 1 ngày vui vẻ và đầy ý nghĩa', { duration: 6000 });
-          navigate('/');
+          setPaymentSuccess(true);
+          setTimeout(() => {
+            navigate('/');
+          }, 5000);
         }
       } catch (err) {
         console.error('Polling error:', err);
@@ -92,6 +95,28 @@ const PaymentPage = () => {
           <Link to="/" className="btn-secondary text-sm py-2.5 px-4">
             Về trang chủ
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (paymentSuccess) {
+    return (
+      <div className="app-narrow py-2">
+        <div className="glass-card p-8 text-center animate-fade-in shadow-xl shadow-success/10 border-success/30">
+          <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-[pulseGlow_2s_ease-in-out_infinite]">
+            <svg className="w-10 h-10 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-success mb-3">Thanh toán thành công!</h2>
+          <p className="text-muted mb-8 leading-relaxed text-sm sm:text-base">Đã thanh toán thành công. Cảm ơn bạn, chúc bạn 1 ngày vui vẻ và đầy ý nghĩa.</p>
+          <div className="space-y-4">
+            <Link to="/" className="btn-primary w-full py-3">
+              Về trang chủ ngay
+            </Link>
+            <p className="text-xs text-muted animate-pulse">Tự động chuyển về trang chủ sau 5 giây...</p>
+          </div>
         </div>
       </div>
     );
