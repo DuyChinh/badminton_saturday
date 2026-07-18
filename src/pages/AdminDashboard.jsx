@@ -9,6 +9,12 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('members');
 
+  // Search
+  const [memberSearch, setMemberSearch] = useState('');
+
+  // Selection
+  const [selectedMembers, setSelectedMembers] = useState([]);
+
   // Form states
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
@@ -22,6 +28,10 @@ const AdminDashboard = () => {
   // Bulk update
   const [showBulkForm, setShowBulkForm] = useState(false);
   const [bulkAmount, setBulkAmount] = useState('');
+
+  // Split bill
+  const [showSplitForm, setShowSplitForm] = useState(false);
+  const [splitTotal, setSplitTotal] = useState('');
 
   // Delete confirm
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -194,6 +204,45 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleSplitBill = async (e) => {
+    e.preventDefault();
+    if (splitTotal === '' || selectedMembers.length === 0) {
+      toast.error('Vui lòng nhập số tiền và chọn ít nhất 1 người');
+      return;
+    }
+    try {
+      const amountPerPerson = Math.ceil(Number(splitTotal) / selectedMembers.length);
+      await api.put('/members/bulk-update', {
+        amountDue: amountPerPerson,
+        memberIds: selectedMembers,
+        isAdd: true
+      });
+      toast.success(`Đã chia ${formatCurrency(amountPerPerson)} cho ${selectedMembers.length} người`);
+      setShowSplitForm(false);
+      setSplitTotal('');
+      setSelectedMembers([]);
+      fetchMembers();
+    } catch (error) {
+      toast.error('Lỗi chia tiền');
+    }
+  };
+
+  const handleSelectMember = (id, checked) => {
+    if (checked) {
+      setSelectedMembers(prev => [...prev, id]);
+    } else {
+      setSelectedMembers(prev => prev.filter(mId => mId !== id));
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedMembers.length === filteredMembers.length) {
+      setSelectedMembers([]);
+    } else {
+      setSelectedMembers(filteredMembers.map(m => m._id));
+    }
+  };
+
   const resetForm = () => {
     setShowForm(false);
     setEditingMember(null);
@@ -209,6 +258,11 @@ const AdminDashboard = () => {
   const paidCount = members.filter((m) => m.paymentStatus === 'paid').length;
   const totalDue = members.reduce((sum, m) => sum + m.amountDue, 0);
 
+  const filteredMembers = members.filter(m => {
+    const searchLower = memberSearch.toLowerCase();
+    return m.name.toLowerCase().includes(searchLower) || (m.memberCode && m.memberCode.toLowerCase().includes(searchLower));
+  });
+
   return (
     <div className="w-full">
       {/* Header */}
@@ -218,6 +272,17 @@ const AdminDashboard = () => {
           <p className="text-muted mt-1">Quản lý thành viên và thanh toán</p>
         </div>
         <div className="flex flex-wrap gap-2 sm:gap-3">
+          <button
+            onClick={() => { setShowSplitForm(true); }}
+            disabled={selectedMembers.length === 0}
+            className={`text-sm py-2.5 px-4 rounded-xl font-bold transition-all shadow-md ${
+              selectedMembers.length > 0 
+                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-lg hover:-translate-y-0.5 cursor-pointer' 
+                : 'bg-surface-hover text-muted cursor-not-allowed'
+            }`}
+          >
+            🧮 Tính tiền ({selectedMembers.length})
+          </button>
           <button
             onClick={() => { setShowBulkForm(true); }}
             className="btn-secondary text-sm py-2.5 px-4"
@@ -280,23 +345,57 @@ const AdminDashboard = () => {
       {/* Members Tab */}
       {activeTab === 'members' && (
         <div className="animate-fade-in">
+          <div className="mb-6 relative w-full sm:max-w-md">
+            <input
+              type="text"
+              className="input-field w-full !pl-11"
+              placeholder="Tìm kiếm thành viên theo tên hoặc mã..."
+              value={memberSearch}
+              onChange={(e) => setMemberSearch(e.target.value)}
+            />
+            <svg className="w-5 h-5 text-muted absolute left-4 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+
+          <div className="flex justify-between items-center mb-3 px-1">
+            <div className="flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                checked={filteredMembers.length > 0 && selectedMembers.length === filteredMembers.length}
+                onChange={handleSelectAll}
+                className="w-5 h-5 rounded border-border-color text-primary focus:ring-primary cursor-pointer"
+              />
+              <span className="text-sm text-muted font-medium cursor-pointer select-none" onClick={handleSelectAll}>
+                Chọn tất cả {filteredMembers.length > 0 ? `(${filteredMembers.length})` : ''}
+              </span>
+            </div>
+            {selectedMembers.length > 0 && (
+              <span className="text-sm font-bold text-primary-light">
+                Đã chọn: {selectedMembers.length}
+              </span>
+            )}
+          </div>
+
           {loading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="skeleton h-20 w-full" />
               ))}
             </div>
-          ) : members.length === 0 ? (
+          ) : filteredMembers.length === 0 ? (
             <div className="glass-card p-12 text-center">
               <span className="text-5xl mb-4 block">👤</span>
-              <p className="text-muted">Chưa có thành viên nào</p>
+              <p className="text-muted">Không tìm thấy thành viên nào</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {members.map((member) => (
+              {filteredMembers.map((member) => (
                 <MemberRow
                   key={member._id}
                   member={member}
+                  isSelected={selectedMembers.includes(member._id)}
+                  onSelect={(checked) => handleSelectMember(member._id, checked)}
                   onEdit={() => handleEdit(member)}
                   onDelete={() => setDeleteTarget(member)}
                   onUpdateAmount={handleUpdateAmount}
@@ -313,16 +412,16 @@ const AdminDashboard = () => {
         <div className="animate-fade-in">
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <form onSubmit={handleTxSearch} className="flex-1">
-              <div className="relative">
+            <form onSubmit={handleTxSearch} className="flex-1 max-w-md">
+              <div className="relative w-full">
                 <input
                   type="text"
-                  className="input-field w-full pl-10"
+                  className="input-field w-full !pl-11"
                   placeholder="Tìm kiếm giao dịch..."
                   value={txSearch}
                   onChange={(e) => setTxSearch(e.target.value)}
                 />
-                <svg className="w-5 h-5 text-muted absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-muted absolute left-4 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -531,6 +630,48 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* ===== Split Bill Modal ===== */}
+      {showSplitForm && (
+        <div className="modal-overlay" onClick={() => setShowSplitForm(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-main mb-2">🧮 Tính tiền (Chia bill)</h3>
+            <p className="text-sm text-muted mb-5">
+              Chia đều số tiền cho <span className="text-main font-semibold text-lg">{selectedMembers.length}</span> thành viên đã chọn
+            </p>
+            <form onSubmit={handleSplitBill} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-muted mb-1.5">Tổng số tiền (đ)</label>
+                <input
+                  type="number"
+                  value={splitTotal}
+                  onChange={(e) => setSplitTotal(e.target.value)}
+                  className="input-field text-lg font-bold text-primary-light"
+                  placeholder="VD: 150000"
+                  min="0"
+                  autoFocus
+                />
+                {splitTotal && selectedMembers.length > 0 && (
+                  <div className="mt-3 p-3 bg-primary/10 border border-primary/20 rounded-xl">
+                    <p className="text-sm text-muted mb-1">Mỗi người sẽ thanh toán:</p>
+                    <p className="text-xl font-black text-amber-500">
+                      {formatCurrency(Math.ceil(Number(splitTotal) / selectedMembers.length))}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" className="btn-primary flex-1 bg-gradient-to-r from-amber-500 to-orange-500 border-none shadow-md hover:shadow-lg cursor-pointer">
+                  Áp dụng chia tiền
+                </button>
+                <button type="button" onClick={() => setShowSplitForm(false)} className="btn-secondary flex-1 cursor-pointer">
+                  Hủy
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ===== Delete Confirm Modal ===== */}
       {deleteTarget && (
         <div className="modal-overlay" onClick={() => setDeleteTarget(null)}>
@@ -565,7 +706,7 @@ const AdminDashboard = () => {
 };
 
 // ===== Member Row Component =====
-const MemberRow = ({ member, onEdit, onDelete, onUpdateAmount, onUpdateAvatar }) => {
+const MemberRow = ({ member, isSelected, onSelect, onEdit, onDelete, onUpdateAmount, onUpdateAvatar }) => {
   const [amount, setAmount] = useState(member.amountDue.toString());
   const [isEditing, setIsEditing] = useState(false);
 
@@ -577,9 +718,15 @@ const MemberRow = ({ member, onEdit, onDelete, onUpdateAmount, onUpdateAvatar })
   };
 
   return (
-    <div className="glass-card p-4 sm:p-5">
+    <div className={`glass-card p-4 sm:p-5 transition-colors border-2 ${isSelected ? 'border-amber-500/50 bg-amber-500/5' : 'border-transparent'}`}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
+          <input 
+            type="checkbox" 
+            checked={isSelected}
+            onChange={(e) => onSelect(e.target.checked)}
+            className="w-5 h-5 rounded border-border-color text-amber-500 focus:ring-amber-500 cursor-pointer shrink-0"
+          />
           <div 
             className="relative w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 group cursor-pointer border-2 border-border-color hover:border-primary transition-colors"
             onClick={onUpdateAvatar}

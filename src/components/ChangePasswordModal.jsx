@@ -42,8 +42,8 @@ const ChangePasswordModal = ({ isOpen, onClose, isFirstLogin }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-surface w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-border-color">
-        <div className="p-6 border-b border-border-color bg-bg-main relative">
+      <div className="bg-card w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-border-color">
+        <div className="p-6 border-b border-border-color bg-surface relative">
           <h2 className="text-xl font-bold text-main">
             {isFirstLogin ? 'Yêu cầu Đổi Mật Khẩu' : 'Đổi Mật Khẩu'}
           </h2>
@@ -70,7 +70,7 @@ const ChangePasswordModal = ({ isOpen, onClose, isFirstLogin }) => {
             <input
               type="password"
               required
-              className="input-field"
+              className="input-field bg-bg-main"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
               placeholder="Nhập mật khẩu hiện tại"
@@ -81,7 +81,7 @@ const ChangePasswordModal = ({ isOpen, onClose, isFirstLogin }) => {
             <input
               type="password"
               required
-              className="input-field"
+              className="input-field bg-bg-main"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Ít nhất 6 ký tự"
@@ -92,7 +92,7 @@ const ChangePasswordModal = ({ isOpen, onClose, isFirstLogin }) => {
             <input
               type="password"
               required
-              className="input-field"
+              className="input-field bg-bg-main"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Nhập lại mật khẩu mới"

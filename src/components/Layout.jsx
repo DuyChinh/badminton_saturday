@@ -21,15 +21,12 @@ const Layout = ({ children }) => {
       {/* Header */}
       <header className="glass-header sticky top-0 z-50">
         <div className="app-container h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold transform group-hover:rotate-12 transition-transform shadow-md">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.381z" clipRule="evenodd" />
-              </svg>
+          <Link to="/" className="flex items-center gap-3 group shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white transform group-hover:-rotate-12 transition-transform shadow-md">
+              <img src="/badminton-player.png" alt="logo" className="h-6 w-6 object-contain drop-shadow-sm" style={{ filter: 'brightness(0) invert(1)' }} />
             </div>
             <div>
-              <h1 className="text-lg font-extrabold leading-none tracking-tight text-main">PAYMENT</h1>
-              <p className="text-[10px] text-muted tracking-widest uppercase font-semibold mt-0.5">Badminton Club</p>
+              <h1 className="text-lg font-black leading-none tracking-tight text-main">Saturday Badminton Club</h1>
             </div>
           </Link>
 
