@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { formatCurrency } from '../utils/formatters';
+import toast from 'react-hot-toast';
+
+const CopyIcon = ({ className = 'w-4 h-4' }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+  </svg>
+);
 
 const PaymentPage = () => {
   const { memberId } = useParams();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -13,6 +21,26 @@ const PaymentPage = () => {
   useEffect(() => {
     fetchQR();
   }, [memberId]);
+
+  useEffect(() => {
+    if (!memberId) return;
+
+    const intervalId = setInterval(async () => {
+      try {
+        const res = await api.get(`/members/${memberId}`);
+        const currentMember = res.data.data;
+        if (currentMember.paymentStatus === 'paid') {
+          clearInterval(intervalId);
+          toast.success('Đã thanh toán thành công. Cảm ơn bạn, chúc bạn 1 ngày vui vẻ và đầy ý nghĩa', { duration: 6000 });
+          navigate('/');
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [memberId, navigate]);
 
   const fetchQR = async () => {
     try {
@@ -25,13 +53,17 @@ const PaymentPage = () => {
     }
   };
 
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`Đã copy ${label}`);
+  };
+
   if (loading) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-12">
-        <div className="glass-card p-8 text-center">
-          <div className="skeleton w-64 h-64 mx-auto mb-4" />
-          <div className="skeleton w-48 h-6 mx-auto mb-2" />
-          <div className="skeleton w-32 h-4 mx-auto" />
+      <div className="app-narrow py-2">
+        <div className="glass-card p-6 text-center min-h-[360px] flex flex-col justify-center">
+          <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted animate-pulse text-sm">Đang tạo mã thanh toán...</p>
         </div>
       </div>
     );
@@ -39,13 +71,26 @@ const PaymentPage = () => {
 
   if (error) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-12">
+      <div className="app-narrow py-2">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-main transition-colors mb-3 font-medium"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+          Quay lại
+        </Link>
         <div className="glass-card p-8 text-center animate-fade-in">
-          <span className="text-6xl mb-4 block">✅</span>
-          <h2 className="text-xl font-bold text-white mb-2">{error}</h2>
-          <p className="text-gray-400 mb-6">Thành viên này không cần thanh toán</p>
-          <Link to="/" className="btn-primary inline-block">
-            ← Quay lại
+          <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-7 h-7 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-main mb-2">{error}</h2>
+          <p className="text-muted mb-6 text-sm">Bạn không có khoản nợ nào cần thanh toán lúc này.</p>
+          <Link to="/" className="btn-secondary text-sm py-2.5 px-4">
+            Về trang chủ
           </Link>
         </div>
       </div>
@@ -55,84 +100,121 @@ const PaymentPage = () => {
   const { member, payment } = data;
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-8">
-      <div className="animate-slide-up">
-        {/* Back button */}
-        <Link to="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-primary-light transition-colors mb-6">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Quay lại danh sách
+    <div className="w-full -mt-2 sm:-mt-4 animate-slide-up">
+      {/* Back: trái toàn trang, không chiếm giữa cột */}
+      <div className="mb-3">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-main transition-colors group"
+        >
+          <span className="w-7 h-7 rounded-lg bg-surface border border-border-color flex items-center justify-center group-hover:bg-surface-hover group-hover:border-primary/30 transition-colors">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </span>
+          Quay lại
         </Link>
+      </div>
 
-        {/* Payment Card */}
-        <div className="glass-card p-6 sm:p-8 text-center">
-          {/* Member Info */}
-          <div className="mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-primary/20">
-              <span className="text-2xl font-bold text-white">{member.name.charAt(0)}</span>
-            </div>
-            <h2 className="text-xl font-bold text-white">{member.name}</h2>
-            <p className="text-gray-400 text-sm">#{member.memberCode}</p>
+      <div className="app-narrow">
+        <div className="glass-card overflow-hidden shadow-xl shadow-primary/5 hover:border-border-color">
+          {/* Header gọn */}
+          <div className="bg-surface px-4 py-3.5 text-center border-b border-border-color">
+            <p className="text-[11px] font-semibold text-primary uppercase tracking-widest mb-0.5">
+              Hóa đơn thanh toán
+            </p>
+            <h2 className="text-xl font-bold text-main leading-tight">{member.name}</h2>
+            <p className="text-muted font-mono text-xs mt-0.5">#{member.memberCode}</p>
           </div>
 
-          {/* Amount */}
-          <div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-2xl p-5 mb-6">
-            <p className="text-sm text-gray-400 mb-1">Số tiền cần thanh toán</p>
-            <p className="text-4xl font-bold text-primary-light">{formatCurrency(member.amountDue)}</p>
-          </div>
-
-          {/* QR Code */}
-          <div className="mb-6">
-            <div className="qr-container inline-block">
-              {!imgLoaded && (
-                <div className="w-[280px] h-[280px] skeleton rounded-lg" />
-              )}
-              <img
-                src={payment.qrUrl}
-                alt="QR Thanh toán"
-                className={`w-[280px] h-auto rounded-lg ${imgLoaded ? 'block' : 'hidden'}`}
-                onLoad={() => setImgLoaded(true)}
-              />
-            </div>
-          </div>
-
-          {/* Bank Info */}
-          <div className="space-y-3 text-left bg-dark/40 rounded-xl p-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-400">Ngân hàng</span>
-              <span className="font-semibold text-white">{payment.bankName}</span>
-            </div>
-            <div className="border-t border-dark-border" />
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-400">Số tài khoản</span>
-              <span className="font-mono text-white">{payment.bankAccount}</span>
-            </div>
-            <div className="border-t border-dark-border" />
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-400">Chủ TK</span>
-              <span className="font-semibold text-white">{payment.accountName}</span>
-            </div>
-            <div className="border-t border-dark-border" />
-            <div>
-              <span className="text-sm text-gray-400 block mb-1">Nội dung CK</span>
-              <div className="bg-dark rounded-lg p-3 border border-primary/20">
-                <code className="text-primary-light text-sm font-mono break-all">
-                  {payment.transferDescription}
-                </code>
+          {/* QR + số tiền */}
+          <div className="ticket-cutout bg-bg-main px-4 py-4 text-center relative border-b border-dashed border-border-color">
+            <p className="text-xs text-muted mb-0.5">Số tiền cần thanh toán</p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-primary mb-3 tracking-tight">
+              {formatCurrency(member.amountDue)}
+            </p>
+            {/* QR Wrapper */}
+            <div className="relative inline-block mt-4">
+              <div className="absolute inset-0 bg-primary rounded-[2rem] blur-xl opacity-20 animate-pulse-glow"></div>
+              <div className="relative bg-white p-6 rounded-[2rem] shadow-xl">
+                {!imgLoaded && (
+                  <div className="w-[300px] h-[300px] skeleton rounded-xl" />
+                )}
+                <img
+                  src={payment.qrUrl}
+                  alt="QR Thanh toán"
+                  className={`w-[300px] h-[300px] sm:w-[340px] sm:h-[340px] rounded-xl object-contain ${imgLoaded ? 'block' : 'hidden'}`}
+                  onLoad={() => setImgLoaded(true)}
+                />
+                
+                {/* Scan indicator overlay */}
+                {imgLoaded && (
+                  <div className="absolute top-1/2 left-0 w-full h-1 bg-primary/50 blur-[2px] shadow-[0_0_15px_rgba(16,185,129,0.8)] -translate-y-1/2 animate-[slideUp_3s_ease-in-out_infinite_alternate]" style={{animationName: 'scanline'}} />
+                )}
               </div>
             </div>
+
+            <p className="mt-3 text-xs font-medium text-muted flex items-center justify-center gap-1.5">
+              <svg className="w-4 h-4 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+              </svg>
+              Quét mã bằng app Ngân hàng
+            </p>
           </div>
 
-          {/* Warning */}
-          <div className="mt-6 bg-accent/10 border border-accent/20 rounded-xl p-4">
-            <p className="text-sm text-accent flex items-start gap-2">
-              <span className="text-lg leading-none">⚠️</span>
-              <span>Vui lòng giữ nguyên nội dung chuyển khoản để hệ thống tự động xác nhận thanh toán.</span>
-            </p>
+          {/* Chi tiết CK */}
+          <div className="px-4 py-3.5 bg-surface space-y-3">
+            <button
+              type="button"
+              onClick={() => copyToClipboard(payment.bankAccount, 'số tài khoản')}
+              className="w-full flex justify-between items-center gap-3 text-left group"
+            >
+              <span className="text-xs text-muted shrink-0">Số tài khoản</span>
+              <span className="flex items-center gap-2 min-w-0">
+                <span className="font-mono font-bold text-sm text-main tracking-wide truncate">
+                  {payment.bankAccount}
+                </span>
+                <CopyIcon className="w-3.5 h-3.5 text-muted group-hover:text-primary transition-colors shrink-0" />
+              </span>
+            </button>
+
+            <div className="flex justify-between items-center gap-3">
+              <span className="text-xs text-muted">Ngân hàng</span>
+              <span className="font-semibold text-sm text-main">{payment.bankName}</span>
+            </div>
+
+            <div className="flex justify-between items-center gap-3">
+              <span className="text-xs text-muted shrink-0">Chủ TK</span>
+              <span className="font-semibold text-sm text-main text-right truncate">{payment.accountName}</span>
+            </div>
+
+            <div>
+              <span className="text-xs text-muted block mb-1.5">Nội dung CK (bắt buộc)</span>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(payment.transferDescription, 'nội dung CK')}
+                className="w-full bg-bg-main rounded-xl px-3 py-2.5 border border-border-color flex items-start gap-2.5 text-left hover:border-primary/40 transition-colors group"
+              >
+                <code className="text-primary font-mono text-xs break-all font-semibold flex-1 leading-relaxed">
+                  {payment.transferDescription}
+                </code>
+                <span className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 shrink-0">
+                  <CopyIcon className="w-3.5 h-3.5 text-primary" />
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes scanline {
+            0% { top: 12%; }
+            100% { top: 88%; }
+          }
+        `,
+      }} />
     </div>
   );
 };

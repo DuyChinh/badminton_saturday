@@ -142,23 +142,23 @@ const AdminDashboard = () => {
   const totalDue = members.reduce((sum, m) => sum + m.amountDue, 0);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="w-full">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 animate-fade-in">
         <div>
-          <h1 className="text-2xl font-bold text-white">🏸 Quản trị viên</h1>
-          <p className="text-gray-400 mt-1">Quản lý thành viên và thanh toán</p>
+          <h1 className="text-2xl font-bold text-main">Quản trị viên</h1>
+          <p className="text-muted mt-1">Quản lý thành viên và thanh toán</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <button
             onClick={() => { setShowBulkForm(true); }}
-            className="btn-secondary text-sm"
+            className="btn-secondary text-sm py-2.5 px-4"
           >
-            💰 Gán tiền tất cả
+            Gán tiền tất cả
           </button>
           <button
             onClick={() => { resetForm(); setShowForm(true); }}
-            className="btn-primary text-sm"
+            className="btn-primary text-sm py-2.5 px-4"
           >
             + Thêm thành viên
           </button>
@@ -168,20 +168,20 @@ const AdminDashboard = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8 animate-slide-up">
         <div className="glass-card p-4 text-center">
-          <p className="text-2xl font-bold text-white">{members.length}</p>
-          <p className="text-xs text-gray-400 mt-1">Tổng TV</p>
+          <p className="text-2xl font-bold text-main">{members.length}</p>
+          <p className="text-xs text-muted mt-1">Tổng TV</p>
         </div>
         <div className="glass-card p-4 text-center">
           <p className="text-2xl font-bold text-danger">{unpaidCount}</p>
-          <p className="text-xs text-gray-400 mt-1">Chưa TT</p>
+          <p className="text-xs text-muted mt-1">Chưa TT</p>
         </div>
         <div className="glass-card p-4 text-center">
           <p className="text-2xl font-bold text-success">{paidCount}</p>
-          <p className="text-xs text-gray-400 mt-1">Đã TT</p>
+          <p className="text-xs text-muted mt-1">Đã TT</p>
         </div>
         <div className="glass-card p-4 text-center">
           <p className="text-xl font-bold text-accent">{formatCurrency(totalDue)}</p>
-          <p className="text-xs text-gray-400 mt-1">Cần thu</p>
+          <p className="text-xs text-muted mt-1">Cần thu</p>
         </div>
       </div>
 
@@ -192,7 +192,7 @@ const AdminDashboard = () => {
           className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
             activeTab === 'members'
               ? 'bg-primary/20 text-primary-light border border-primary/30'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
+              : 'text-muted hover:text-main hover:bg-surface-hover'
           }`}
         >
           👥 Thành viên ({members.length})
@@ -202,7 +202,7 @@ const AdminDashboard = () => {
           className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
             activeTab === 'transactions'
               ? 'bg-primary/20 text-primary-light border border-primary/30'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
+              : 'text-muted hover:text-main hover:bg-surface-hover'
           }`}
         >
           📜 Lịch sử GD ({transactions.length})
@@ -221,7 +221,7 @@ const AdminDashboard = () => {
           ) : members.length === 0 ? (
             <div className="glass-card p-12 text-center">
               <span className="text-5xl mb-4 block">👤</span>
-              <p className="text-gray-400">Chưa có thành viên nào</p>
+              <p className="text-muted">Chưa có thành viên nào</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -245,7 +245,7 @@ const AdminDashboard = () => {
           {transactions.length === 0 ? (
             <div className="glass-card p-12 text-center">
               <span className="text-5xl mb-4 block">📜</span>
-              <p className="text-gray-400">Chưa có giao dịch nào</p>
+              <p className="text-muted">Chưa có giao dịch nào</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -261,19 +261,19 @@ const AdminDashboard = () => {
                         <span>{tx.status === 'success' ? '✅' : '⚠️'}</span>
                       </div>
                       <div>
-                        <p className="font-semibold text-white text-sm">
+                        <p className="font-semibold text-main text-sm">
                           {tx.memberId?.name || tx.memberCode || 'Không xác định'}
                         </p>
-                        <p className="text-xs text-gray-500">#{tx.memberCode || '—'}</p>
+                        <p className="text-xs text-muted">#{tx.memberCode || '—'}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-success">{formatCurrency(tx.amount)}</p>
-                      <p className="text-xs text-gray-500">{formatDate(tx.transactionDate || tx.createdAt)}</p>
+                      <p className="text-xs text-muted">{formatDate(tx.transactionDate || tx.createdAt)}</p>
                     </div>
                   </div>
                   <div className="bg-dark/40 rounded-lg p-2 mt-2">
-                    <p className="text-xs text-gray-400 font-mono break-all">{tx.transactionContent}</p>
+                    <p className="text-xs text-muted font-mono break-all">{tx.transactionContent}</p>
                   </div>
                 </div>
               ))}
@@ -286,12 +286,12 @@ const AdminDashboard = () => {
       {showForm && (
         <div className="modal-overlay" onClick={() => resetForm()}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-white mb-5">
+            <h3 className="text-lg font-bold text-main mb-5">
               {editingMember ? '✏️ Sửa thành viên' : '➕ Thêm thành viên mới'}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">Tên thành viên *</label>
+                <label className="block text-sm font-medium text-muted mb-1.5">Tên thành viên *</label>
                 <input
                   type="text"
                   value={formName}
@@ -302,8 +302,8 @@ const AdminDashboard = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                  Mã thành viên <span className="text-gray-500">(tự tạo nếu bỏ trống)</span>
+                <label className="block text-sm font-medium text-muted mb-1.5">
+                  Mã thành viên <span className="text-muted">(tự tạo nếu bỏ trống)</span>
                 </label>
                 <input
                   type="text"
@@ -315,7 +315,7 @@ const AdminDashboard = () => {
               </div>
               {editingMember && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                  <label className="block text-sm font-medium text-muted mb-1.5">
                     Số tiền cần thanh toán (đ)
                   </label>
                   <input
@@ -326,7 +326,7 @@ const AdminDashboard = () => {
                     placeholder="VD: 50000"
                     min="0"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted mt-1">
                     Nếu {'>'} 0 sẽ tự động chuyển trạng thái về "Chưa thanh toán"
                   </p>
                 </div>
@@ -348,13 +348,13 @@ const AdminDashboard = () => {
       {showBulkForm && (
         <div className="modal-overlay" onClick={() => setShowBulkForm(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-white mb-2">💰 Gán tiền cho tất cả</h3>
-            <p className="text-sm text-gray-400 mb-5">
-              Cập nhật số tiền cần thanh toán cho <span className="text-white font-semibold">{members.length}</span> thành viên
+            <h3 className="text-lg font-bold text-main mb-2">💰 Gán tiền cho tất cả</h3>
+            <p className="text-sm text-muted mb-5">
+              Cập nhật số tiền cần thanh toán cho <span className="text-main font-semibold">{members.length}</span> thành viên
             </p>
             <form onSubmit={handleBulkUpdate} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">Số tiền (đ)</label>
+                <label className="block text-sm font-medium text-muted mb-1.5">Số tiền (đ)</label>
                 <input
                   type="number"
                   value={bulkAmount}
@@ -387,9 +387,9 @@ const AdminDashboard = () => {
       {deleteTarget && (
         <div className="modal-overlay" onClick={() => setDeleteTarget(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-white mb-3">⚠️ Xác nhận xóa</h3>
-            <p className="text-gray-400 mb-6">
-              Bạn chắc chắn muốn xóa <span className="text-white font-semibold">{deleteTarget.name}</span>?
+            <h3 className="text-lg font-bold text-main mb-3">⚠️ Xác nhận xóa</h3>
+            <p className="text-muted mb-6">
+              Bạn chắc chắn muốn xóa <span className="text-main font-semibold">{deleteTarget.name}</span>?
               Hành động này không thể hoàn tác.
             </p>
             <div className="flex gap-3">
@@ -435,8 +435,8 @@ const MemberRow = ({ member, onEdit, onDelete, onUpdateAmount }) => {
             </span>
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-white truncate">{member.name}</p>
-            <p className="text-xs text-gray-500 font-mono">#{member.memberCode}</p>
+            <p className="font-semibold text-main truncate">{member.name}</p>
+            <p className="text-xs text-muted font-mono">#{member.memberCode}</p>
           </div>
         </div>
 
@@ -457,7 +457,7 @@ const MemberRow = ({ member, onEdit, onDelete, onUpdateAmount }) => {
                 }}
               />
               <button onClick={handleSaveAmount} className="text-success hover:text-success/80 p-1">✓</button>
-              <button onClick={() => { setIsEditing(false); setAmount(member.amountDue.toString()); }} className="text-gray-400 hover:text-white p-1">✕</button>
+              <button onClick={() => { setIsEditing(false); setAmount(member.amountDue.toString()); }} className="text-muted hover:text-main p-1">✕</button>
             </div>
           ) : (
             <button
@@ -478,10 +478,10 @@ const MemberRow = ({ member, onEdit, onDelete, onUpdateAmount }) => {
           </span>
 
           {/* Actions */}
-          <button onClick={onEdit} className="p-2 text-gray-400 hover:text-primary-light transition-colors" title="Sửa">
+          <button onClick={onEdit} className="p-2 text-muted hover:text-primary-light transition-colors" title="Sửa">
             ✏️
           </button>
-          <button onClick={onDelete} className="p-2 text-gray-400 hover:text-danger transition-colors" title="Xóa">
+          <button onClick={onDelete} className="p-2 text-muted hover:text-danger transition-colors" title="Xóa">
             🗑️
           </button>
         </div>
