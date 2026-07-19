@@ -151,8 +151,9 @@ const PaymentPage = () => {
         </Link>
       </div>
 
-      <div className="app-narrow">
-        <div className="glass-card overflow-hidden shadow-xl shadow-primary/5 hover:border-border-color">
+      <div className="max-w-4xl mx-auto px-4 w-full flex flex-col md:flex-row gap-6 items-start justify-center">
+        {/* Left: QR Card */}
+        <div className="w-full max-w-sm glass-card overflow-hidden shadow-xl shadow-primary/5 hover:border-border-color shrink-0">
           {/* Header gọn */}
           <div className="bg-surface px-4 py-3.5 text-center border-b border-border-color">
             <p className="text-[11px] font-semibold text-primary uppercase tracking-widest mb-0.5">
@@ -239,6 +240,35 @@ const PaymentPage = () => {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Right: Notes Section */}
+        <div className="w-full max-w-sm glass-card p-6 border-l-4 border-l-warning bg-warning/5 mt-0 md:mt-4">
+          <h3 className="font-bold text-warning mb-4 flex items-center gap-2">
+            <span>⚠️</span> Lưu ý quan trọng
+          </h3>
+          <ul className="space-y-4 text-sm text-muted">
+            <li className="flex items-start gap-3">
+              <span className="text-warning shrink-0 mt-0.5">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </span>
+              <span className="leading-relaxed">
+                Sau khi thanh toán xong, vui lòng <strong className="text-main">chờ 3-5s</strong> để thông báo thành công hiện lên trên màn hình này.
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-warning shrink-0 mt-0.5">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </span>
+              <span className="leading-relaxed">
+                Vui lòng <strong className="text-danger">KHÔNG</strong> thay đổi nội dung chuyển khoản để hệ thống có thể ghi nhận tự động.
+              </span>
+            </li>
+          </ul>
         </div>
       </div>
 
