@@ -112,7 +112,7 @@ const PaymentPage = () => {
 
   if (paymentSuccess) {
     return (
-      <div className="app-narrow py-2">
+      <div className="max-w-lg mx-auto w-full py-2 px-4">
         <div className="glass-card p-8 text-center animate-fade-in shadow-xl shadow-success/10 border-success/30">
           <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-[pulseGlow_2s_ease-in-out_infinite]">
             <svg className="w-10 h-10 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">

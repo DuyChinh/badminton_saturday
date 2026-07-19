@@ -57,7 +57,7 @@ const TransactionHistory = () => {
             <div className="relative">
               <input
                 type="text"
-                className="input-field w-full pl-10"
+                className="input-field w-full !pl-11"
                 placeholder="Tìm kiếm theo tên hoặc mã thành viên..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
