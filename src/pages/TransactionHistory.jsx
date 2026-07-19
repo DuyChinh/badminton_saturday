@@ -140,7 +140,7 @@ const TransactionHistory = () => {
                         <td className="px-6 py-4 font-extrabold text-success">
                           +{formatCurrency(tx.amount)}
                         </td>
-                        <td className="px-6 py-4 max-w-xs truncate text-muted font-mono text-xs">
+                        <td className="px-6 py-4 text-muted font-mono text-xs whitespace-pre-wrap break-all">
                           {tx.transactionContent}
                         </td>
                         <td className="px-6 py-4">
