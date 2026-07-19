@@ -120,7 +120,10 @@ const PaymentPage = () => {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-success mb-3">Thanh toán thành công!</h2>
-          <p className="text-muted mb-8 leading-relaxed text-sm sm:text-base">Đã thanh toán thành công. Cảm ơn bạn, chúc bạn 1 ngày vui vẻ và đầy ý nghĩa.</p>
+          <p className="text-muted mb-8 leading-relaxed text-sm sm:text-base">
+            <span className="block">Đã thanh toán thành công.</span>
+            <span className="block">Cảm ơn bạn, chúc bạn một ngày vui vẻ và đầy ý nghĩa.</span>
+          </p>
           <div className="space-y-4">
             <Link to="/" className="btn-primary w-full py-3">
               Về trang chủ ngay

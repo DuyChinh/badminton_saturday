@@ -482,7 +482,7 @@ const NewsBoard = () => {
         >
           <div className="relative max-w-5xl max-h-[90vh] w-full flex items-center justify-center">
             <button 
-              className="absolute top-4 right-4 text-white hover:text-danger bg-black/50 hover:bg-black/80 rounded-full p-2 transition-colors z-10"
+              className="absolute top-4 right-4 text-white hover:text-danger bg-black/50 hover:bg-black/80 rounded-full p-2 transition-colors z-10 cursor-pointer"
               onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">

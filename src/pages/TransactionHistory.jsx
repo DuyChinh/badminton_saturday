@@ -91,6 +91,13 @@ const TransactionHistory = () => {
           </div>
         </div>
 
+        {!loading && (
+          <div className="flex justify-between items-center bg-surface p-4 rounded-xl border border-border-color shadow-sm mb-4 animate-slide-up">
+            <span className="text-muted font-medium">Tổng giao dịch: <span className="text-main font-bold">{transactions.length}</span></span>
+            <span className="text-muted font-medium">Tổng tiền nhận: <span className="text-success font-extrabold text-xl">{formatCurrency(totalAmount)}</span></span>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex flex-col gap-3">
             {[...Array(5)].map((_, i) => (
@@ -99,10 +106,6 @@ const TransactionHistory = () => {
           </div>
         ) : transactions.length > 0 ? (
           <div className="animate-slide-up space-y-4">
-            <div className="flex justify-between items-center bg-surface p-4 rounded-xl border border-border-color shadow-sm mb-4">
-              <span className="text-muted font-medium">Tổng giao dịch: <span className="text-main font-bold">{transactions.length}</span></span>
-              <span className="text-muted font-medium">Tổng tiền nhận: <span className="text-success font-extrabold text-xl">{formatCurrency(totalAmount)}</span></span>
-            </div>
             
             <div className="glass-card overflow-hidden">
               <div className="overflow-x-auto">
