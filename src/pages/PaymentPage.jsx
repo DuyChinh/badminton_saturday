@@ -140,7 +140,7 @@ const PaymentPage = () => {
   return (
     <div className="w-full -mt-2 sm:-mt-4 animate-slide-up">
       {/* Back: trái toàn trang, không chiếm giữa cột */}
-      <div className="mb-3">
+      <div className="">
         <Link
           to="/"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-main transition-colors group"
