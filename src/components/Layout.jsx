@@ -84,7 +84,7 @@ const Layout = ({ children }) => {
                     : 'text-muted hover:text-primary hover:bg-primary/10'
                 }`}
               >
-                Lịch thi đấu
+                Lịch thi đấu & BXH
               </Link>
               
               <Link

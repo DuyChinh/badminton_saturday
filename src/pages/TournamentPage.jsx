@@ -223,8 +223,8 @@ const TournamentPage = () => {
         )}
       </div>
 
-      {/* Tabs - Flex Wrap on mobile so tabs wrap cleanly onto next line */}
-      <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-border-color">
+      {/* Tabs - Flex Wrap & Centered on all screens */}
+      <div className="flex flex-wrap items-center justify-center gap-2 pb-2 border-b border-border-color">
         <button
           onClick={() => setActiveTab('standings')}
           className={`px-3.5 sm:px-4 py-2 rounded-xl font-bold text-xs sm:text-sm cursor-pointer transition-all flex items-center gap-1.5 ${

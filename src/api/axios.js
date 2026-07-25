@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearAuthStorage } from '../utils/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -23,11 +24,17 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('badminton_token');
-      localStorage.removeItem('badminton_admin');
-      // Only redirect if currently on admin pages
-      if (window.location.pathname.startsWith('/admin')) {
-        window.location.href = '/login';
+      const requestUrl = error.config?.url || '';
+      const isLoginRequest = requestUrl.includes('/login');
+
+      // Chỉ xử lý hết hạn phiên nếu không phải là request đăng nhập thất bại
+      if (!isLoginRequest) {
+        clearAuthStorage();
+        window.dispatchEvent(
+          new CustomEvent('badminton:unauthorized', {
+            detail: { message: error.response?.data?.message || 'Phiên đăng nhập đã hết hạn' },
+          })
+        );
       }
     }
     return Promise.reject(error);
