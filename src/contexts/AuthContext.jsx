@@ -74,16 +74,20 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const updateAvatar = (avatarUrl) => {
+  const updateUser = (updatedFields) => {
     if (user) {
-      const updatedUser = { ...user, avatarUrl };
+      const updatedUser = { ...user, ...updatedFields };
       setUser(updatedUser);
       localStorage.setItem('badminton_user', JSON.stringify(updatedUser));
     }
   };
 
+  const updateAvatar = (avatarUrl) => {
+    updateUser({ avatarUrl });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updateAvatar, fetchUser, isAuthenticated: !!user, isAdmin: user?.role === 'admin' }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateAvatar, updateUser, fetchUser, isAuthenticated: !!user, isAdmin: user?.role === 'admin' }}>
       {children}
     </AuthContext.Provider>
   );

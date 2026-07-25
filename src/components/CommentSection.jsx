@@ -80,7 +80,8 @@ const CommentSection = ({ postId }) => {
   const handleReact = async (commentId, type) => {
     try {
       const guestId = user ? undefined : getGuestId();
-      await api.post(`/comments/react/${commentId}`, { type, guestId });
+      const guestName = user ? undefined : getGuestName();
+      await api.post(`/comments/react/${commentId}`, { type, guestId, guestName });
       fetchComments();
     } catch (error) {
       toast.error('Lỗi khi thả cảm xúc');

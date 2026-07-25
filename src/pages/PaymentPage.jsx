@@ -175,14 +175,14 @@ const PaymentPage = () => {
             {/* QR Wrapper */}
             <div className="relative inline-block mt-4">
               <div className="absolute inset-0 bg-primary rounded-[2rem] blur-xl opacity-20 animate-pulse-glow"></div>
-              <div className="relative bg-white p-6 rounded-[2rem] shadow-xl">
+              <div className="relative bg-white p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] shadow-xl inline-block max-w-full">
                 {!imgLoaded && (
-                  <div className="w-[300px] h-[300px] skeleton rounded-xl" />
+                  <div className="w-[240px] h-[240px] sm:w-[340px] sm:h-[340px] skeleton rounded-xl mx-auto" />
                 )}
                 <img
                   src={payment.qrUrl}
                   alt="QR Thanh toán"
-                  className={`w-[300px] h-[300px] sm:w-[340px] sm:h-[340px] rounded-xl object-contain ${imgLoaded ? 'block' : 'hidden'}`}
+                  className={`w-[240px] h-[240px] sm:w-[340px] sm:h-[340px] rounded-xl object-contain mx-auto ${imgLoaded ? 'block' : 'hidden'}`}
                   onLoad={() => setImgLoaded(true)}
                 />
                 

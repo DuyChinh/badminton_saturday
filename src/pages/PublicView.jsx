@@ -113,20 +113,20 @@ const PublicView = () => {
             <div className="flex gap-4 sm:gap-8 flex-wrap">
               <div className="flex items-center gap-1.5">
                 <span className="text-muted">Tổng số:</span>
-                <span className="font-bold text-main">{members.length}</span>
+                <span className="font-bold text-main">{displayMembers.length}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-muted">Chưa đóng:</span>
-                <span className="font-bold text-danger">{members.filter(m => m.paymentStatus === 'unpaid').length}</span>
+                <span className="font-bold text-danger">{unpaidMembers.length}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-muted">Đã đóng:</span>
-                <span className="font-bold text-success">{members.filter(m => m.paymentStatus === 'paid').length}</span>
+                <span className="font-bold text-success">{paidMembers.length}</span>
               </div>
             </div>
             <div className="flex items-center gap-2 bg-bg-main px-4 py-1.5 rounded-lg border border-border-color">
               <span className="text-muted">Tổng nợ:</span>
-              <span className="font-bold text-accent text-lg">{formatCurrency(members.filter(m => m.paymentStatus === 'unpaid').reduce((sum, m) => sum + m.amountDue, 0))}</span>
+              <span className="font-bold text-accent text-lg">{formatCurrency(totalDue)}</span>
             </div>
           </div>
 

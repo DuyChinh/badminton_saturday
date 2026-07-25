@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { formatDate } from '../utils/formatters';
 import CommentSection from '../components/CommentSection';
 import PostReaction from '../components/PostReaction';
-import { getGuestId } from '../utils/guest';
+import { getGuestId, getGuestName } from '../utils/guest';
 
 const NewsBoard = () => {
   const { user } = useAuth();
@@ -179,7 +180,8 @@ const NewsBoard = () => {
   const handleReactPost = async (postId, type) => {
     try {
       const guestId = user ? undefined : getGuestId();
-      await api.post(`/posts/${postId}/react`, { type, guestId });
+      const guestName = user ? undefined : getGuestName();
+      await api.post(`/posts/${postId}/react`, { type, guestId, guestName });
       fetchPosts(false);
     } catch (error) {
       toast.error('Lỗi thả cảm xúc');
@@ -474,10 +476,10 @@ const NewsBoard = () => {
         </div>
       </div>
 
-      {/* Fullscreen Image Modal */}
-      {selectedImage && (
+      {/* Fullscreen Image Modal (Portal to body) */}
+      {selectedImage && createPortal(
         <div 
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm animate-fade-in"
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative max-w-5xl max-h-[90vh] w-full flex items-center justify-center">
@@ -496,7 +498,8 @@ const NewsBoard = () => {
               onClick={(e) => e.stopPropagation()}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

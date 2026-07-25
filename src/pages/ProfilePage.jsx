@@ -8,13 +8,17 @@ import ChangePasswordModal from '../components/ChangePasswordModal';
 const ProfilePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, updateAvatar } = useAuth();
+  const { user, updateAvatar, updateUser } = useAuth();
   
   const [profileData, setProfileData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Edit Name
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
 
   // Edit Note
   const [isEditingNote, setIsEditingNote] = useState(false);
@@ -36,11 +40,13 @@ const ProfilePage = () => {
         if (id) {
           const res = await api.get(`/members/${id}`);
           setProfileData(res.data.data);
+          setNameValue(res.data.data.name || '');
           setNoteValue(res.data.data.note || '');
           setMemberCodeValue(res.data.data.memberCode || '');
         } else if (user) {
           const res = await api.get('/users/me');
           setProfileData(res.data.user);
+          setNameValue(res.data.user.name || '');
           setNoteValue(res.data.user.note || '');
           setMemberCodeValue(res.data.user.memberCode || '');
         } else {
@@ -91,7 +97,7 @@ const ProfilePage = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       // if editing own avatar, update context
-      if (!id || id === user?.id) {
+      if (!id || id === user?.id || profileData?._id === user?.id) {
         updateAvatar(response.data.avatarUrl);
       }
       setProfileData(prev => ({ ...prev, avatarUrl: response.data.avatarUrl }));
@@ -104,6 +110,28 @@ const ProfilePage = () => {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleSaveName = async () => {
+    if (!nameValue || !nameValue.trim()) {
+      toast.error('Họ và tên không được để trống');
+      return;
+    }
+
+    try {
+      const res = await api.put(`/members/${profileData._id}`, { name: nameValue.trim() });
+      const updated = res.data.data;
+      setProfileData(prev => ({ ...prev, name: updated.name, memberCode: updated.memberCode }));
+      if (updated.memberCode) setMemberCodeValue(updated.memberCode);
+      setIsEditingName(false);
+
+      if (!id || id === user?.id || profileData?._id === user?.id) {
+        if (updateUser) updateUser({ name: updated.name, memberCode: updated.memberCode });
+      }
+      toast.success('Cập nhật họ và tên thành công!');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Lỗi khi cập nhật họ và tên');
     }
   };
 
@@ -213,14 +241,55 @@ const ProfilePage = () => {
               accept="image/*"
               className="hidden"
             />
-            {canEdit && <p className="text-sm text-muted mb-4 text-center">Bấm vào biểu tượng máy ảnh<br/>để cập nhật ảnh</p>}
+            {canEdit && (
+              <button
+                type="button"
+                onClick={handleUploadClick}
+                className="btn-secondary text-sm py-2 px-4 flex items-center justify-center gap-2 mt-3 cursor-pointer shadow-sm hover:border-primary/50 transition-all w-full sm:w-auto"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Đổi ảnh đại diện
+              </button>
+            )}
           </div>
 
           {/* Info Section (Right) */}
           <div className="w-full flex-1 space-y-4">
+            {/* Họ và tên */}
             <div className="bg-surface p-4 rounded-xl border border-border-color">
-              <p className="text-xs text-muted mb-1 font-semibold uppercase tracking-wider">Họ và tên</p>
-              <p className="text-lg font-medium text-main">{profileData.name}</p>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <p className="text-xs text-muted mb-1 font-semibold uppercase tracking-wider">Họ và tên</p>
+                  {isEditingName ? (
+                    <div className="flex items-center gap-2 mt-2">
+                      <input 
+                        type="text" 
+                        value={nameValue} 
+                        onChange={(e) => setNameValue(e.target.value)} 
+                        className="input-field w-full text-sm py-1.5 px-3"
+                        placeholder="Nhập họ và tên..."
+                        autoFocus
+                      />
+                      <button onClick={handleSaveName} className="btn-primary py-1.5 px-3 text-sm shrink-0">Lưu</button>
+                      <button onClick={() => { setIsEditingName(false); setNameValue(profileData.name || ''); }} className="btn-secondary py-1.5 px-3 text-sm shrink-0">Hủy</button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-lg font-medium text-main">{profileData.name}</p>
+                      {canEdit && (
+                        <button onClick={() => { setNameValue(profileData.name); setIsEditingName(true); }} className="text-primary hover:text-primary-light ml-2 p-1 cursor-pointer" title="Chỉnh sửa họ và tên">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             
             {/* Note / Ghi chú */}
