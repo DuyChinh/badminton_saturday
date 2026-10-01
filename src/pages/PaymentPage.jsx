@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency, formatDate } from '../utils/formatters';
 import LuckyWheel from '../components/LuckyWheel';
 import PrizePopup from '../components/PrizePopup';
 import toast from 'react-hot-toast';
@@ -219,41 +219,76 @@ const PaymentPage = () => {
   }
 
   if (paymentSuccess) {
+    const { member, payment } = data || {};
     return (
-      <div className="max-w-lg mx-auto w-full">
-        <div className="glass-card relative overflow-hidden p-8 pt-12 text-center animate-fade-in border-success/30">
-          <div className="confetti-layer" aria-hidden="true">
+      <div className="max-w-[420px] mx-auto w-full relative">
+        <div className="relative overflow-hidden p-7 sm:p-9 pt-10 text-center animate-fade-in rounded-3xl bg-card border border-border-color shadow-2xl">
+          
+          {/* Confetti layer - Keep original effect */}
+          <div className="confetti-layer" aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3 }}>
             {confetti.map(({ id, ...style }) => (
-              <span key={id} style={style} />
+              <span key={id} style={style} className="confetti" />
             ))}
           </div>
 
-          <div className="relative">
+          {/* Court outline background */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[240px] h-[200px] border border-primary/20 opacity-30 pointer-events-none -mt-6">
+            <div className="absolute inset-x-0 border-b border-primary/20 top-1/2"></div>
+            <div className="absolute inset-y-0 border-r border-primary/20 left-1/2"></div>
+            <div className="absolute inset-4 border border-primary/20"></div>
+          </div>
+
+          <div className="relative z-10">
             <span
-              className="halo w-28 h-28 rounded-full flex items-center justify-center mx-auto mb-10 text-on-primary"
-              style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-light))' }}
+              className="halo w-[90px] h-[90px] rounded-full flex items-center justify-center mx-auto mb-6 text-on-primary"
+              style={{ background: 'var(--primary)' }}
             >
-              <svg className="w-13 h-13" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.6} d="M5 12.5l4.5 4.5L19 7.5" />
+              <svg className="w-11 h-11" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M5 13l4 4L19 7" />
               </svg>
             </span>
 
-            <h2 className="font-display text-[42px] font-extrabold text-main m-0">
-              Thanh toán
-              <br />
+            <h2 className="font-display text-[32px] sm:text-[38px] font-extrabold text-main m-0 leading-[1.1]">
+              Thanh toán<br />
               <span className="grad-text">thành công!</span>
             </h2>
-            <p className="text-muted mt-3 mb-8 leading-relaxed text-[15px]">
-              Đã ghi nhận khoản thanh toán của bạn. Cảm ơn bạn, chúc bạn một ngày vui vẻ và đầy ý nghĩa.
+            
+            <p className="text-muted mt-3.5 mb-7 text-[15px]">
+              <strong className="text-main font-bold">{member?.name}</strong> đã thanh toán thành công.
             </p>
 
-            <Link to="/" className="btn-primary w-full py-3.5">
+            <div className="text-left bg-surface/50 border border-border-light rounded-[20px] px-5 py-2 mb-7 relative overflow-hidden z-10">
+              {/* Background watermark */}
+              <div className="absolute -bottom-8 -right-4 opacity-[0.03] pointer-events-none">
+                <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14.5 22.5c-.8 0-1.5-.7-1.5-1.5v-4.8l-3.2-3.2c-.3-.3-.4-.7-.3-1.1s.4-.7.8-.8l6.4-1.6c.3-.1.6.0.8.2s.3.6.2.8l-1.6 6.4c-.1.4-.4.6-.8.8s-.8.3-1.1-.3l-3.2-3.2v4.8c0 .8-.7 1.5-1.5 1.5zm-5.7-10.3c-.3 0-.6-.1-.8-.3l-4.8-4.8c-.6-.6-.6-1.5 0-2.1s1.5-.6 2.1 0l4.8 4.8c.6.6.6 1.5 0 2.1-.3.2-.5.3-.8.3zm-3.5-3.5c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z" />
+                </svg>
+              </div>
+
+              <div className="flex justify-between items-center py-3.5 border-b border-border-light/50">
+                <span className="text-muted text-[13.5px]">Số tiền</span>
+                <span className="font-extrabold text-primary text-[17px]">{formatCurrency(payment?.amount || 0)}</span>
+              </div>
+              <div className="flex justify-between items-center py-3.5 border-b border-border-light/50">
+                <span className="text-muted text-[13.5px]">Thời gian</span>
+                <span className="font-bold text-main text-[13.5px]">{formatDate(new Date())}</span>
+              </div>
+              <div className="flex justify-between items-center py-3.5">
+                <span className="text-muted text-[13.5px]">Nội dung</span>
+                <span className="font-mono font-bold text-main text-[12.5px] tracking-tight">{payment?.description || ''}</span>
+              </div>
+            </div>
+
+            <p className="text-[14px] text-muted mb-8 leading-relaxed">
+              Cảm ơn bạn, chúc bạn một ngày vui vẻ và đầy ý nghĩa.
+            </p>
+
+            <Link to="/" className="btn-primary w-full h-[52px] text-[15px] flex items-center justify-center gap-2 relative z-10 shadow-lg shadow-primary/20">
               Về trang chủ ngay
               <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M13 6l6 6-6 6" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </Link>
-            <p className="text-xs text-muted mt-4 m-0">Tự động chuyển về trang chủ sau {countdown} giây…</p>
           </div>
         </div>
       </div>
