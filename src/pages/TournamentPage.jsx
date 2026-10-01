@@ -207,7 +207,7 @@ const TournamentPage = () => {
             {tournament?.season || 'Season 1'}
           </span>
           <h2 className="text-xl sm:text-3xl font-black text-main mt-2">
-            🏆 {tournament?.title || 'Giải Cầu Lông Sát Thủ'}
+            {tournament?.title || 'Giải Cầu Lông Sát Thủ'}
           </h2>
           <p className="text-xs sm:text-sm text-muted mt-1">Lịch thi đấu vòng bảng, Bảng xếp hạng & Vòng Knockout trực tiếp</p>
         </div>
@@ -218,7 +218,7 @@ const TournamentPage = () => {
             onClick={() => setActiveTab('admin')}
             className="btn-primary py-2.5 px-5 text-sm w-full sm:w-auto shrink-0 cursor-pointer shadow-md"
           >
-            ⚙️ Quản lý giải đấu
+            Quản lý giải đấu
           </button>
         )}
       </div>
@@ -233,7 +233,7 @@ const TournamentPage = () => {
               : 'bg-surface text-muted hover:text-main hover:bg-surface-hover'
           }`}
         >
-          <span>🏆 BXH</span>
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 01-8 0V4zM8 6H5a3 3 0 003 4M16 6h3a3 3 0 01-3 4M12 13v4M8 20h8M9 17h6" /></svg><span>BXH</span>
         </button>
 
         <button
@@ -244,7 +244,7 @@ const TournamentPage = () => {
               : 'bg-surface text-muted hover:text-main hover:bg-surface-hover'
           }`}
         >
-          <span>📅 Vòng Bảng ({groupMatches.length})</span>
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M9 3v4M15 3v4" /></svg><span>Vòng Bảng ({groupMatches.length})</span>
         </button>
 
         <button
@@ -255,7 +255,7 @@ const TournamentPage = () => {
               : 'bg-surface text-muted hover:text-main hover:bg-surface-hover'
           }`}
         >
-          <span>⚔️ Knockout</span>
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 4l9 9M19 4l-9 9M4 19l5-5M20 19l-5-5M7 17l-2 3 3-2M17 17l2 3-3-2" /></svg><span>Knockout</span>
         </button>
 
         <button
@@ -266,7 +266,7 @@ const TournamentPage = () => {
               : 'bg-surface text-muted hover:text-main hover:bg-surface-hover'
           }`}
         >
-          <span>🏅 Kết Quả</span>
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="15" r="5" /><path d="M9 10.5L7 3h10l-2 7.5" /></svg><span>Kết Quả</span>
         </button>
 
         {isAdmin && (
@@ -278,8 +278,8 @@ const TournamentPage = () => {
                 : 'bg-surface text-muted hover:text-main hover:bg-surface-hover'
             }`}
           >
-            <span className="hidden sm:inline">⚙️ Chia cặp & Cấu hình</span>
-            <span className="sm:hidden">⚙️ Cấu hình</span>
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10.3 4h3.4l.4 2.3 2 1.1 2.1-.9 1.7 3-1.6 1.6v2.2l1.6 1.6-1.7 3-2.1-.9-2 1.1-.4 2.3h-3.4l-.4-2.3-2-1.1-2.1.9-1.7-3L5.7 14v-2.2L4.1 10.2l1.7-3 2.1.9 2-1.1L10.3 4z" /><circle cx="12" cy="12" r="2.4" /></svg><span className="hidden sm:inline">Chia cặp &amp; Cấu hình</span>
+            <span className="sm:hidden">Cấu hình</span>
           </button>
         )}
       </div>
@@ -339,7 +339,7 @@ const TournamentPage = () => {
                       }`}
                     >
                       <td className="px-1.5 sm:px-3 py-2.5 text-center font-bold text-xs sm:text-base">
-                        {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
+                        <span style={{ color: idx < 3 ? ['var(--gold)', 'var(--silver)', 'var(--bronze)'][idx] : undefined }}>{idx + 1}</span>
                       </td>
 
                       <td className="px-2 sm:px-4 py-2.5 min-w-0">
@@ -393,7 +393,7 @@ const TournamentPage = () => {
                 onClick={handleGenerateSchedule}
                 className="btn-secondary text-xs py-1.5 px-3 w-full sm:w-auto text-center"
               >
-                🔄 Tạo lại lịch vòng bảng
+                Tạo lại lịch vòng bảng
               </button>
             )}
           </div>
@@ -446,7 +446,7 @@ const TournamentPage = () => {
                       }}
                       className="mt-3 text-xs text-primary hover:text-primary-light font-bold self-stretch sm:self-end text-center sm:text-right py-1.5 sm:py-0 bg-primary/10 sm:bg-transparent rounded-lg sm:rounded-none cursor-pointer transition-colors"
                     >
-                      ✏️ {match.status === 'completed' ? 'Sửa tỉ số' : 'Nhập tỉ số'}
+                      {match.status === 'completed' ? 'Sửa tỉ số' : 'Nhập tỉ số'}
                     </button>
                   )}
                 </div>
@@ -462,7 +462,7 @@ const TournamentPage = () => {
           {/* Winner Banner if Final is completed */}
           {finalMatch && finalMatch.status === 'completed' && finalMatch.winner && (
             <div className="glass-card p-6 sm:p-8 text-center bg-gradient-to-r from-amber-500/10 via-primary/10 to-amber-500/10 border-amber-500/30 animate-pulse-glow">
-              <div className="text-4xl sm:text-5xl mb-2 sm:mb-3">👑 🏆 🥇</div>
+              <div className="mb-2 sm:mb-3"><img src="/bad_icon01.png" alt="Huy chương" className="w-20 h-20 sm:w-24 sm:h-24 mx-auto object-contain" style={{ filter: 'drop-shadow(0 10px 24px rgba(232,193,74,0.45))' }} /></div>
               <h2 className="text-xl sm:text-3xl font-black text-main">
                 QUÁN QUÂN: <span className="text-primary">{finalMatch.winner}</span>
               </h2>
@@ -493,7 +493,7 @@ const TournamentPage = () => {
                       }}
                       className="mt-3 text-xs text-primary font-bold block ml-auto cursor-pointer"
                     >
-                      ✏️ Nhập tỉ số Bán kết 1
+                      Nhập tỉ số Bán kết 1
                     </button>
                   )}
                 </div>
@@ -504,7 +504,7 @@ const TournamentPage = () => {
 
             {/* Final Match (Middle Card) */}
             <div className="glass-card p-5 sm:p-6 border-2 border-primary/50 bg-primary/5 shadow-xl relative text-center">
-              <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🏆</div>
+              <div className="mb-1 sm:mb-2 flex justify-center"><svg className="w-7 h-7 sm:w-8 sm:h-8" style={{ color: 'var(--gold)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 01-8 0V4zM8 6H5a3 3 0 003 4M16 6h3a3 3 0 01-3 4M12 13v4M8 20h8M9 17h6" /></svg></div>
               <span className="text-xs font-black uppercase tracking-widest text-primary mb-3 block">TRẬN CHUNG KẾT</span>
               {finalMatch ? (
                 <div>
@@ -525,7 +525,7 @@ const TournamentPage = () => {
                       }}
                       className="mt-4 btn-primary py-2 px-4 text-xs cursor-pointer w-full"
                     >
-                      👑 Cập nhật tỉ số Chung kết
+                      Cập nhật tỉ số Chung kết
                     </button>
                   )}
                 </div>
@@ -556,7 +556,7 @@ const TournamentPage = () => {
                       }}
                       className="mt-3 text-xs text-primary font-bold block ml-auto cursor-pointer"
                     >
-                      ✏️ Nhập tỉ số Bán kết 2
+                      Nhập tỉ số Bán kết 2
                     </button>
                   )}
                 </div>
@@ -573,7 +573,7 @@ const TournamentPage = () => {
         <div className="space-y-6 animate-fade-in">
           {/* Header Podium Banner */}
           <div className="glass-card p-6 sm:p-8 text-center relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-primary/5 to-amber-500/10 border-amber-500/30">
-            <div className="text-4xl sm:text-6xl mb-2">🏆 🏅 👑</div>
+            <div className="mb-2"><img src="/bad_icon01.png" alt="Huy chương" className="w-24 h-24 sm:w-28 sm:h-28 mx-auto object-contain" style={{ filter: 'drop-shadow(0 10px 24px rgba(232,193,74,0.45))' }} /></div>
             <h2 className="text-2xl sm:text-3xl font-black text-main uppercase tracking-tight">
               Bảng Vàng Vinh Danh Giải Đấu
             </h2>
@@ -582,14 +582,14 @@ const TournamentPage = () => {
 
           {/* Medals Showcase Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-stretch">
-            {/* 🥇 GIẢI NHẤT (QUÁN QUÂN) */}
+            {/* Champion */}
             <div className="glass-card p-6 text-center border-2 border-amber-400 bg-gradient-to-b from-amber-500/20 via-yellow-400/10 to-transparent shadow-xl relative flex flex-col justify-between order-1 md:order-2 transform md:-translate-y-2">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-950 font-black text-xs px-3 py-1 rounded-full uppercase tracking-widest shadow-md">
-                🥇 NHÀ VÔ ĐỊCH
+                NHÀ VÔ ĐỊCH
               </div>
 
               <div className="pt-3">
-                <div className="text-5xl mb-2">🏆</div>
+                <div className="mb-2"><img src="/bad_icon01.png" alt="Huy chương" className="w-20 h-20 mx-auto object-contain" style={{ filter: 'drop-shadow(0 10px 24px rgba(232,193,74,0.45))' }} /></div>
                 <h3 className="font-black text-xl sm:text-2xl text-main">{championTeam?.name || 'Đang cập nhật...'}</h3>
                 {championTeam?.players && (
                   <div className="flex justify-center -space-x-2 my-3">
@@ -612,18 +612,18 @@ const TournamentPage = () => {
               </div>
 
               <div className="mt-4 pt-3 border-t border-amber-400/30">
-                <span className="badge-paid text-xs bg-amber-400/20 text-amber-500 border-amber-400/30">Huy Chương Vàng 🥇</span>
+                <span className="badge-paid text-xs bg-amber-400/20 text-amber-500 border-amber-400/30">Huy Chương Vàng</span>
               </div>
             </div>
 
-            {/* 🥈 GIẢI NHÌ (Á QUÂN) */}
+            {/* Runner-up */}
             <div className="glass-card p-6 text-center border-2 border-slate-400 bg-gradient-to-b from-slate-400/20 via-slate-300/10 to-transparent shadow-lg relative flex flex-col justify-between order-2 md:order-1">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-300 text-slate-950 font-black text-xs px-3 py-1 rounded-full uppercase tracking-widest shadow-md">
-                🥈 Á QUÂN
+                Á QUÂN
               </div>
 
               <div className="pt-3">
-                <div className="text-4xl mb-2">🥈</div>
+                <div className="mb-2 flex justify-center"><span className="w-14 h-14 rounded-full flex items-center justify-center font-display text-2xl font-extrabold text-bg-main" style={{ background: 'var(--silver)' }}>2</span></div>
                 <h3 className="font-black text-lg sm:text-xl text-main">{runnerUpTeam?.name || 'Đang cập nhật...'}</h3>
                 {runnerUpTeam?.players && (
                   <div className="flex justify-center -space-x-2 my-3">
@@ -646,18 +646,18 @@ const TournamentPage = () => {
               </div>
 
               <div className="mt-4 pt-3 border-t border-slate-400/30">
-                <span className="badge-paid text-xs bg-slate-400/20 text-slate-300 border-slate-400/30">Huy Chương Bạc 🥈</span>
+                <span className="badge-paid text-xs bg-slate-400/20 text-slate-300 border-slate-400/30">Huy Chương Bạc</span>
               </div>
             </div>
 
-            {/* 🥉 GIẢI BA (ĐỒNG HẠNG BA) */}
+            {/* GIẢI BA (ĐỒNG HẠNG BA) */}
             <div className="glass-card p-6 text-center border-2 border-amber-700 bg-gradient-to-b from-amber-800/20 via-amber-700/10 to-transparent shadow-lg relative flex flex-col justify-between order-3">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-700 text-white font-black text-xs px-3 py-1 rounded-full uppercase tracking-widest shadow-md">
-                🥉 GIẢI BA
+                GIẢI BA
               </div>
 
               <div className="pt-3">
-                <div className="text-4xl mb-2">🥉</div>
+                <div className="mb-2 flex justify-center"><span className="w-14 h-14 rounded-full flex items-center justify-center font-display text-2xl font-extrabold text-bg-main" style={{ background: 'var(--bronze)' }}>3</span></div>
                 <h3 className="font-black text-lg sm:text-xl text-main">
                   {thirdPlaceTeams.length > 0 ? thirdPlaceTeams.map(t => t.name).join(', ') : 'Đang cập nhật...'}
                 </h3>
@@ -669,7 +669,7 @@ const TournamentPage = () => {
               </div>
 
               <div className="mt-4 pt-3 border-t border-amber-700/30">
-                <span className="badge-paid text-xs bg-amber-700/20 text-amber-600 border-amber-700/30">Huy Chương Đồng 🥉</span>
+                <span className="badge-paid text-xs bg-amber-700/20 text-amber-600 border-amber-700/30">Huy Chương Đồng</span>
               </div>
             </div>
           </div>
@@ -677,7 +677,7 @@ const TournamentPage = () => {
           {/* Full Standing Ranks List */}
           <div className="glass-card p-5 sm:p-6">
             <h3 className="font-bold text-base sm:text-lg text-main mb-4 flex items-center gap-2">
-              <span>📊 Bảng Xếp Hạng Tổng Sắp Mùa Giải</span>
+              <span>Bảng Xếp Hạng Tổng Sắp Mùa Giải</span>
             </h3>
 
             <div className="space-y-2.5">
@@ -685,7 +685,7 @@ const TournamentPage = () => {
                 <div key={t.teamId || idx} className="flex items-center justify-between p-3 bg-surface rounded-xl border border-border-color">
                   <div className="flex items-center gap-3">
                     <span className="font-black text-sm sm:text-base w-8 text-center">
-                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                      <span style={{ color: idx < 3 ? ['var(--gold)', 'var(--silver)', 'var(--bronze)'][idx] : undefined }}>#{idx + 1}</span>
                     </span>
                     <div>
                       <p className="font-bold text-main text-xs sm:text-sm">{t.name}</p>
@@ -744,7 +744,7 @@ const TournamentPage = () => {
                 onClick={handleRandomPairing}
                 className="btn-primary py-3 sm:py-2.5 px-5 text-sm w-full sm:w-auto cursor-pointer shadow-md justify-center"
               >
-                🎲 Chia cặp ngẫu nhiên
+                Chia cặp ngẫu nhiên
               </button>
             </div>
           </div>
@@ -784,7 +784,7 @@ const TournamentPage = () => {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2">
               {editingTeams.length > 0 && (
                 <button onClick={handleSaveTeams} className="btn-primary py-3 sm:py-2.5 px-5 text-sm cursor-pointer shadow-md justify-center w-full sm:w-auto">
-                  💾 Lưu tên các đội
+                  Lưu tên các đội
                 </button>
               )}
 
@@ -793,7 +793,7 @@ const TournamentPage = () => {
                 className="btn-danger py-3 sm:py-2.5 px-5 text-sm cursor-pointer shadow-md flex items-center justify-center gap-1.5 w-full sm:w-auto"
                 title="Xóa toàn bộ danh sách đội và lịch thi đấu để chia cặp lại từ đầu"
               >
-                🔄 Reset All (Chia cặp lại & Xóa tỉ số)
+                Reset All (Chia cặp lại & Xóa tỉ số)
               </button>
 
               <button 
@@ -801,7 +801,7 @@ const TournamentPage = () => {
                 className="btn-secondary text-xs py-3 sm:py-2.5 px-4 cursor-pointer hover:border-danger/50 font-bold justify-center w-full sm:w-auto"
                 title="Reset tất cả tỉ số các trận đấu về 0-0"
               >
-                🧹 Reset Tỉ số về 0
+                Reset Tỉ số về 0
               </button>
             </div>
           </div>
@@ -876,7 +876,7 @@ const TournamentPage = () => {
             </div>
 
             <button onClick={handleSetupKnockout} className="btn-primary py-3 sm:py-2.5 px-5 text-sm cursor-pointer w-full sm:w-auto justify-center">
-              ⚔️ Khởi tạo vòng Bán kết & Chung kết
+              Khởi tạo vòng Bán kết & Chung kết
             </button>
           </div>
         </div>

@@ -48,7 +48,7 @@ const ChangePasswordModal = ({ isOpen, onClose, isFirstLogin }) => {
             {isFirstLogin ? 'Yêu cầu Đổi Mật Khẩu' : 'Đổi Mật Khẩu'}
           </h2>
           {isFirstLogin && (
-            <p className="text-sm text-warning mt-1">
+            <p className="text-sm text-warn mt-1">
               Bạn cần đổi mật khẩu trong lần đăng nhập đầu tiên để bảo mật tài khoản.
             </p>
           )}

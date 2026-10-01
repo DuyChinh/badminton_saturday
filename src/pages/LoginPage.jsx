@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -34,76 +35,125 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-180px)] flex items-center justify-center">
-      <div className="w-full app-narrow animate-slide-up">
-        {/* Logo Section */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-xl shadow-primary/20 animate-pulse-glow">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 sm:h-10 sm:w-10 text-white" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12.9 6.858l4.242 4.243-9.9 9.9H3v-4.243l9.9-9.9zm1.414-1.414l2.121-2.122a1 1 0 011.414 0l2.829 2.829a1 1 0 010 1.414l-2.122 2.121-4.242-4.242z"/>
-            </svg>
+    <div className="max-w-5xl mx-auto w-full animate-slide-up">
+      <div className="grid lg:grid-cols-2 rounded-3xl overflow-hidden border border-border-color bg-card">
+        {/* Court-side panel */}
+        <div className="relative hidden lg:flex flex-col justify-between p-11 min-h-[600px] bg-[#04140F] text-[#E8F4EE]">
+          <img
+            src="/bad_icon04.png"
+            alt=""
+            className="kenburns absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: '50% 26%' }}
+          />
+          <span
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(4,20,15,0.30) 0%, rgba(4,20,15,0.74) 55%, rgba(4,20,15,0.96) 100%)',
+            }}
+          />
+          <span
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(120deg, rgba(16,185,129,0.30), transparent 58%)' }}
+          />
+
+          <p className="relative text-xs font-bold tracking-[0.16em] uppercase text-primary-light m-0">
+            Saturday Badminton Club
+          </p>
+
+          <div className="relative max-w-[300px]">
+            <p className="font-display text-[52px] font-extrabold m-0">
+              Vào sân
+              <br />
+              <span className="grad-text">thôi!</span>
+            </p>
+            <p className="mt-4 text-[15px] leading-relaxed text-[#C7D8CC] m-0">
+              Đăng nhập để đổi avatar, chỉ xem giao dịch của mình và theo dõi giải đấu.
+            </p>
           </div>
-          <h2 className="text-2xl font-bold text-main">Đăng nhập</h2>
-          <p className="text-muted mt-2">Dành cho Quản trị viên & Thành viên</p>
         </div>
 
-        {/* Login Form */}
-        <div className="glass-card p-6 sm:p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="login-username" className="block text-sm font-medium text-muted mb-2.5">
-                Tên đăng nhập
-              </label>
+        {/* Form */}
+        <div className="p-8 sm:p-12 flex flex-col justify-center">
+          <h1 className="text-[30px] font-bold text-main m-0">Đăng nhập</h1>
+          <p className="mt-2 text-[14.5px] text-muted m-0">Dành cho Quản trị viên &amp; Thành viên</p>
+
+          <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-[18px]">
+            <label htmlFor="login-username" className="flex flex-col gap-2">
+              <span className="text-[13.5px] font-semibold text-main">Tên đăng nhập</span>
               <input
                 id="login-username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="input-field"
-                placeholder="Nhập username..."
+                className="input-field h-13 py-0"
+                placeholder="VD: chientt"
                 autoComplete="username"
                 autoFocus
               />
-            </div>
+            </label>
 
-            <div>
-              <label htmlFor="login-password" className="block text-sm font-medium text-muted mb-2.5">
-                Mật khẩu
-              </label>
-              <input
-                id="login-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
-                placeholder="Nhập mật khẩu..."
-                autoComplete="current-password"
-              />
-            </div>
+            <label htmlFor="login-password" className="flex flex-col gap-2">
+              <span className="text-[13.5px] font-semibold text-main">Mật khẩu</span>
+              <span className="relative block">
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input-field h-13 py-0 pr-13"
+                  placeholder="Nhập mật khẩu"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-1 top-1 w-11 h-11 rounded-xl text-muted hover:text-main flex items-center justify-center cursor-pointer"
+                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                >
+                  {showPassword ? (
+                    <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3l18 18M10.6 10.7a2 2 0 002.8 2.8M9.4 5.9A9.4 9.4 0 0112 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 01-3.3 4M6.5 7.6A16 16 0 002.5 12S6 18.5 12 18.5c1.2 0 2.3-.2 3.3-.6" />
+                    </svg>
+                  ) : (
+                    <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+                      <circle cx="12" cy="12" r="3" strokeWidth={1.8} />
+                    </svg>
+                  )}
+                </button>
+              </span>
+            </label>
 
             <button
               id="login-submit"
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full py-3.5 text-base disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+              className="btn-primary mt-2 h-14 text-[15.5px] disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Đang đăng nhập...
+                  <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Đang đăng nhập…
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                  </svg>
                   Đăng nhập
+                  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
                 </>
               )}
             </button>
           </form>
-        </div>
 
+          <p className="mt-7 px-4 py-3.5 rounded-xl bg-surface border border-border-light text-[13.5px] leading-relaxed text-muted m-0">
+            Lần đầu đăng nhập? Tên đăng nhập là tên không dấu, mật khẩu mặc định{' '}
+            <code className="font-mono text-[12.5px] px-1.5 py-0.5 rounded-md bg-card text-main">12345678</code>.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -245,7 +245,7 @@ const NewsBoard = () => {
           
           {/* Post Form (Admin only) */}
           {user?.role === 'admin' && (
-            <div className={`glass-card p-5 sm:p-7 border-l-4 ${editingPostId ? 'border-l-warning' : 'border-l-primary'}`}>
+            <div className={`glass-card p-5 sm:p-7 border-l-4 ${editingPostId ? 'border-l-warn' : 'border-l-primary'}`}>
               <div className="flex items-center justify-between mb-4 border-b border-border-color pb-4">
                 <h3 className="font-bold text-lg text-main flex items-center gap-2">
                   <span className="text-2xl">📝</span>

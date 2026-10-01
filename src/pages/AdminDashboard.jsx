@@ -464,7 +464,7 @@ const AdminDashboard = () => {
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                         tx.status === 'success'
                           ? 'bg-success/15 border border-success/20 text-success'
-                          : 'bg-warning/15 border border-warning/20 text-warning'
+                          : 'bg-warn/15 border border-warn/20 text-warn'
                       }`}>
                         {tx.memberId?.avatarUrl ? (
                           <img src={tx.memberId.avatarUrl} alt="avatar" className="w-full h-full rounded-full object-cover" />

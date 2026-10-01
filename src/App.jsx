@@ -10,6 +10,7 @@ import ProfilePage from './pages/ProfilePage';
 import AdminDashboard from './pages/AdminDashboard';
 import PaymentPage from './pages/PaymentPage';
 import TransactionHistory from './pages/TransactionHistory';
+import SpinHistoryPage from './pages/SpinHistoryPage';
 import NewsBoard from './pages/NewsBoard';
 import TournamentPage from './pages/TournamentPage';
 
@@ -41,6 +42,7 @@ function App() {
             <Routes>
               <Route path="/" element={<PublicView />} />
               <Route path="/history" element={<TransactionHistory />} />
+              <Route path="/spin-history" element={<SpinHistoryPage />} />
               <Route path="/news" element={<NewsBoard />} />
               <Route path="/tournament" element={<TournamentPage />} />
               <Route path="/login" element={<LoginPage />} />
