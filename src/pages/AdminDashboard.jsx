@@ -175,6 +175,18 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleResetSpins = async (memberId, name) => {
+    if (window.confirm(`Bạn có chắc chắn muốn khôi phục lượt quay cho ${name}?`)) {
+      try {
+        await api.put(`/members/${memberId}/reset-spins`);
+        toast.success(`Đã khôi phục lượt quay cho ${name}`);
+        fetchMembers();
+      } catch (error) {
+        toast.error('Lỗi khi khôi phục lượt quay');
+      }
+    }
+  };
+
   const handleUpdateAmount = async (memberId, amount) => {
     try {
       await api.put(`/members/${memberId}`, { amountDue: Number(amount) });
@@ -400,6 +412,7 @@ const AdminDashboard = () => {
                   onDelete={() => setDeleteTarget(member)}
                   onUpdateAmount={handleUpdateAmount}
                   onUpdateAvatar={() => handleAvatarClick(member)}
+                  onResetSpins={() => handleResetSpins(member._id, member.name)}
                 />
               ))}
             </div>
@@ -706,7 +719,7 @@ const AdminDashboard = () => {
 };
 
 // ===== Member Row Component =====
-const MemberRow = ({ member, isSelected, onSelect, onEdit, onDelete, onUpdateAmount, onUpdateAvatar }) => {
+const MemberRow = ({ member, isSelected, onSelect, onEdit, onDelete, onUpdateAmount, onUpdateAvatar, onResetSpins }) => {
   const [amount, setAmount] = useState(member.amountDue.toString());
   const [isEditing, setIsEditing] = useState(false);
 
@@ -806,6 +819,9 @@ const MemberRow = ({ member, isSelected, onSelect, onEdit, onDelete, onUpdateAmo
           </span>
 
           {/* Actions */}
+          <button onClick={onResetSpins} className="p-2 text-muted hover:text-amber-500 transition-colors" title="Reset lượt quay">
+            🔄
+          </button>
           <button onClick={onEdit} className="p-2 text-muted hover:text-primary-light transition-colors" title="Sửa">
             ✏️
           </button>
