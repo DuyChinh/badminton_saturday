@@ -221,8 +221,14 @@ const PaymentPage = () => {
   if (paymentSuccess) {
     const { member, payment } = data || {};
     return (
-      <div className="max-w-[420px] mx-auto w-full relative">
+      <div className="max-w-[460px] mx-auto w-full relative mt-4">
         <div className="relative overflow-hidden p-7 sm:p-9 pt-10 text-center animate-fade-in rounded-3xl bg-card border border-border-color shadow-2xl">
+          
+          {/* Decorative Badminton Icons */}
+          <img src="/bad_icon01.png" alt="" className="absolute top-6 left-6 w-10 h-10 opacity-30 -rotate-12 pointer-events-none" />
+          <img src="/bad_icon02.png" alt="" className="absolute top-10 right-8 w-12 h-12 opacity-30 rotate-45 pointer-events-none" />
+          <img src="/bad_icon03.png" alt="" className="absolute bottom-16 left-4 w-14 h-14 opacity-25 rotate-[30deg] pointer-events-none" />
+          <img src="/bad_icon04.png" alt="" className="absolute bottom-24 right-4 w-10 h-10 opacity-30 -rotate-[15deg] pointer-events-none" />
           
           {/* Confetti layer - Keep original effect */}
           <div className="confetti-layer" aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3 }}>
@@ -279,7 +285,7 @@ const PaymentPage = () => {
               </div>
             </div>
 
-            <p className="text-[14px] text-muted mb-8 leading-relaxed">
+            <p className="text-[15px] text-muted mb-8 leading-relaxed px-4">
               Cảm ơn bạn, chúc bạn một ngày vui vẻ và đầy ý nghĩa.
             </p>
 
