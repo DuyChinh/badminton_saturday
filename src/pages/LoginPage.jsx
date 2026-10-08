@@ -24,6 +24,8 @@ const LoginPage = () => {
       toast.success('Đăng nhập thành công!');
       if (user.role === 'admin') {
         navigate('/admin');
+      } else if (user.role === 'scorer') {
+        navigate('/tournament');
       } else {
         navigate('/');
       }

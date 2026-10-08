@@ -43,7 +43,7 @@ const NAV_ITEMS = [
 ];
 
 const Layout = ({ children }) => {
-  const { isAuthenticated, logout, user, isAdmin } = useAuth();
+  const { isAuthenticated, logout, user, isAdmin, isScorer } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -72,21 +72,37 @@ const Layout = ({ children }) => {
       </div>
 
       <header className="glass-header sticky top-0 z-50">
-        <div className="app-container h-[72px] flex items-center justify-between gap-6">
+        <div className="max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 h-[72px] flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-3 shrink-0 group">
             <span className="logo-tile w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-primary/25 transition-transform group-hover:-rotate-6">
               <img src="/badminton-player.png" alt="" className="logo-mark w-6 h-6 object-contain" />
             </span>
-            <span className="flex flex-col leading-none">
+            <span className="flex flex-col leading-none whitespace-nowrap">
               <span className="font-display text-[23px] font-extrabold uppercase tracking-tight text-main">Saturday</span>
               <span className="mt-1 text-[10px] font-semibold tracking-[0.26em] text-muted">BADMINTON CLUB</span>
             </span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          {/* Desktop navigation centered with generous spacing */}
+          <nav className="hidden md:flex items-stretch h-[72px] gap-1 lg:gap-2" aria-label="Điều hướng chính">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                aria-current={isActive(item.to) ? 'page' : undefined}
+                className={`flex items-center px-3 lg:px-4 text-sm whitespace-nowrap shrink-0 transition-colors ${
+                  isActive(item.to) ? 'nav-active font-bold text-main' : 'font-medium text-muted hover:text-main'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={toggleTheme}
-              className="w-10 h-10 rounded-xl border border-border-color text-muted hover:text-main hover:bg-surface-hover transition-colors flex items-center justify-center cursor-pointer"
+              className="w-10 h-10 rounded-xl border border-border-color text-muted hover:text-main hover:bg-surface-hover transition-colors flex items-center justify-center cursor-pointer shrink-0"
               aria-label="Đổi giao diện sáng / tối"
             >
               {theme === 'dark' ? (
@@ -100,28 +116,12 @@ const Layout = ({ children }) => {
               )}
             </button>
 
-            {/* Desktop navigation */}
-            <nav className="hidden md:flex items-stretch h-[72px]" aria-label="Điều hướng chính">
-              {NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  aria-current={isActive(item.to) ? 'page' : undefined}
-                  className={`flex items-center px-[14px] text-sm transition-colors ${
-                    isActive(item.to) ? 'nav-active font-bold text-main' : 'font-medium text-muted hover:text-main'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-
             {isAuthenticated ? (
-              <div className="hidden md:flex items-center gap-2 ml-1">
+              <div className="hidden md:flex items-center gap-2 ml-1 shrink-0">
                 {isAdmin && (
                   <Link
                     to="/admin"
-                    className={`h-7 px-2.5 rounded-md text-[11px] font-bold tracking-[0.12em] flex items-center transition-colors ${
+                    className={`h-7 px-2.5 rounded-md text-[11px] font-bold tracking-[0.12em] whitespace-nowrap shrink-0 flex items-center transition-colors ${
                       location.pathname.includes('/admin')
                         ? 'bg-violet/25 text-violet-soft'
                         : 'bg-violet/15 text-violet-soft hover:bg-violet/25'
@@ -130,24 +130,32 @@ const Layout = ({ children }) => {
                     ADMIN
                   </Link>
                 )}
+                {isScorer && (
+                  <Link
+                    to="/tournament"
+                    className="h-7 px-2.5 rounded-md text-[11px] font-bold tracking-[0.12em] whitespace-nowrap shrink-0 flex items-center bg-primary/15 text-primary hover:bg-primary/25 transition-colors"
+                  >
+                    TRỌNG TÀI
+                  </Link>
+                )}
                 <Link
-                  to={isAdmin ? '/admin' : '/profile'}
-                  className="h-10 pl-1 pr-3.5 rounded-full border border-border-color hover:bg-surface-hover transition-colors flex items-center gap-2.5"
+                  to={isAdmin ? '/admin' : isScorer ? '/tournament' : '/profile'}
+                  className="h-10 pl-1 pr-3.5 rounded-full border border-border-color hover:bg-surface-hover transition-colors flex items-center gap-2.5 shrink-0"
                 >
                   {user?.avatarUrl ? (
-                    <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+                    <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
                   ) : (
-                    <span className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center text-[13px] font-bold">
+                    <span className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center text-[13px] font-bold shrink-0">
                       {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
                     </span>
                   )}
-                  <span className="hidden lg:block text-[13.5px] font-semibold text-main">
+                  <span className="hidden lg:block text-[13.5px] font-semibold text-main whitespace-nowrap">
                     {user?.name || user?.username}
                   </span>
                 </Link>
                 <button
                   onClick={logout}
-                  className="w-10 h-10 rounded-xl border border-border-color text-danger hover:bg-danger/10 transition-colors flex items-center justify-center cursor-pointer"
+                  className="w-10 h-10 rounded-xl border border-border-color text-danger hover:bg-danger/10 transition-colors flex items-center justify-center cursor-pointer shrink-0"
                   aria-label="Đăng xuất"
                 >
                   <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,7 +164,7 @@ const Layout = ({ children }) => {
                 </button>
               </div>
             ) : (
-              <Link to="/login" className="btn-primary hidden md:inline-flex h-10 px-[18px] py-0 text-sm">
+              <Link to="/login" className="btn-primary hidden md:inline-flex h-10 px-[18px] py-0 text-sm whitespace-nowrap shrink-0">
                 Đăng nhập
               </Link>
             )}
@@ -210,7 +218,7 @@ const Layout = ({ children }) => {
                 {isAuthenticated ? (
                   <>
                     <Link
-                      to={isAdmin ? '/admin' : '/profile'}
+                      to={isAdmin ? '/admin' : isScorer ? '/tournament' : '/profile'}
                       className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-border-color"
                     >
                       {user?.avatarUrl ? (
@@ -223,7 +231,11 @@ const Layout = ({ children }) => {
                       <span className="min-w-0 flex-1">
                         <span className="block font-bold text-main text-sm truncate">{user?.name || user?.username}</span>
                         <span className="block text-xs text-muted font-medium">
-                          {user?.role === 'admin' ? 'Quản trị viên' : 'Thành viên'}
+                          {user?.role === 'admin'
+                            ? 'Quản trị viên'
+                            : user?.role === 'scorer'
+                            ? 'Trọng tài (Chỉ nhập tỉ số)'
+                            : 'Thành viên'}
                         </span>
                       </span>
                     </Link>
@@ -263,7 +275,17 @@ const Layout = ({ children }) => {
       </header>
 
       <main className="flex-1 relative z-10 w-full">
-        <div className={`app-container ${location.pathname.startsWith('/payment') ? 'pt-2.5 pb-6 sm:pt-3 sm:pb-8' : 'py-6 sm:py-8'}`}>{children}</div>
+        <div
+          className={`app-container ${
+            location.pathname.startsWith('/payment')
+              ? '!max-w-[1480px] 2xl:!max-w-[1600px] pt-2.5 pb-6 sm:pt-3 sm:pb-8'
+              : location.pathname.startsWith('/tournament')
+              ? '!max-w-[1440px] 2xl:!max-w-[1560px] py-6 sm:py-8'
+              : 'py-6 sm:py-8'
+          }`}
+        >
+          {children}
+        </div>
       </main>
 
       <footer className="relative z-10 border-t border-border-light mt-auto">

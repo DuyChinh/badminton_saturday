@@ -5,6 +5,14 @@ import toast from 'react-hot-toast';
 
 const AuthContext = createContext(null);
 
+const normalizeUserRole = (account) => {
+  if (!account) return account;
+  if (account.username?.toLowerCase() === 'admin' || account.role === 'scorer') {
+    return { ...account, role: 'scorer' };
+  }
+  return account;
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); // Can be admin or member
   const [loading, setLoading] = useState(true);
@@ -21,17 +29,30 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
       } else {
         try {
-          const parsed = JSON.parse(savedUser);
+          const parsed = normalizeUserRole(JSON.parse(savedUser));
+          localStorage.setItem('badminton_user', JSON.stringify(parsed));
           setUser(parsed);
 
           // Silently verify token with backend to keep user fresh & catch invalidated tokens
-          const verifyUrl = parsed.role === 'admin' ? '/auth/me' : '/users/me';
-          api.get(verifyUrl).catch((err) => {
-            if (err.response?.status === 401) {
-              clearAuthStorage();
-              setUser(null);
-            }
-          });
+          const verifyUrl = parsed.role === 'user' ? '/users/me' : '/auth/me';
+          api
+            .get(verifyUrl)
+            .then((res) => {
+              if (parsed.role !== 'user' && res.data?.admin) {
+                const freshAdmin = normalizeUserRole({
+                  ...parsed,
+                  ...res.data.admin,
+                });
+                localStorage.setItem('badminton_user', JSON.stringify(freshAdmin));
+                setUser(freshAdmin);
+              }
+            })
+            .catch((err) => {
+              if (err.response?.status === 401) {
+                clearAuthStorage();
+                setUser(null);
+              }
+            });
         } catch {
           clearAuthStorage();
           setUser(null);
@@ -108,17 +129,20 @@ export const AuthProvider = ({ children }) => {
 
       return userData;
     } catch (error) {
-      // If member not found or wrong password, try admin login
+      // If member not found or wrong password, try admin / scorer login
       try {
         const response = await api.post('/auth/login', { username, password });
         const { token, admin: adminData } = response.data;
-        adminData.role = 'admin';
+        const normalizedAdmin = normalizeUserRole({
+          ...adminData,
+          role: adminData.username?.toLowerCase() === 'admin' ? 'scorer' : (adminData.role || 'admin'),
+        });
 
         localStorage.setItem('badminton_token', token);
-        localStorage.setItem('badminton_user', JSON.stringify(adminData));
-        setUser(adminData);
+        localStorage.setItem('badminton_user', JSON.stringify(normalizedAdmin));
+        setUser(normalizedAdmin);
 
-        return adminData;
+        return normalizedAdmin;
       } catch (adminError) {
         // If admin login also fails, throw the original user error or admin error
         throw error;
@@ -156,6 +180,9 @@ export const AuthProvider = ({ children }) => {
     updateUser({ avatarUrl });
   };
 
+  const isScorerAccount = user?.role === 'scorer' || user?.username?.toLowerCase() === 'admin';
+  const isAdminAccount = user?.role === 'admin' && !isScorerAccount;
+
   return (
     <AuthContext.Provider
       value={{
@@ -167,7 +194,9 @@ export const AuthProvider = ({ children }) => {
         updateUser,
         fetchUser,
         isAuthenticated: !!user,
-        isAdmin: user?.role === 'admin',
+        isAdmin: isAdminAccount,
+        isScorer: isScorerAccount,
+        canEditScore: isAdminAccount || isScorerAccount,
       }}
     >
       {children}
