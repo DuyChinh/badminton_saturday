@@ -11,6 +11,7 @@ const CARD_THEMES = [
 const CardFlipGame = ({
   prizes = [],
   spinning = false,
+  spinId = 0,
   resultPrizeId = null,
   onSpinEnd,
   onPlay,
@@ -23,7 +24,7 @@ const CardFlipGame = ({
   const [isFlipped, setIsFlipped] = useState(false);
   const [othersFlipped, setOthersFlipped] = useState(false);
 
-  const played = useRef(null);
+  const lastPlayedSpinId = useRef(0);
   const audioRef = useRef(null);
   const timerRef = useRef(null);
   const countdownIntervalRef = useRef(null);
@@ -37,21 +38,18 @@ const CardFlipGame = ({
         audioRef.current.pause();
         audioRef.current = null;
       }
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) timerRef.current.clear?.();
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     };
   }, []);
 
-  // When spinning starts from parent or card click
+  // When new spinId is received from parent
   useEffect(() => {
-    if (spinning && resultPrizeId && played.current !== resultPrizeId) {
-      played.current = resultPrizeId;
+    if (spinId > 0 && spinId !== lastPlayedSpinId.current) {
+      lastPlayedSpinId.current = spinId;
       startSpinSequence();
     }
-    if (!spinning) {
-      played.current = null;
-    }
-  }, [spinning, resultPrizeId]);
+  }, [spinId]);
 
   const startSpinSequence = () => {
     setPhase('spinning');

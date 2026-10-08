@@ -37,6 +37,7 @@ const PaymentPage = () => {
   const [countdown, setCountdown] = useState(15);
   const [spinning, setSpinning] = useState(false);
   const [pendingPrize, setPendingPrize] = useState(null);
+  const [spinId, setSpinId] = useState(0);
   const [cancelling, setCancelling] = useState(false);
   const pendingSpin = useRef(null);
   const [popup, setPopup] = useState(null);
@@ -130,6 +131,7 @@ const PaymentPage = () => {
       }
       pendingSpin.current = res.data.data;
       setPendingPrize(res.data.data.prizeId);
+      setSpinId((prev) => prev + 1);
     } catch (err) {
       setSpinning(false);
       setPendingPrize(null);
@@ -340,19 +342,21 @@ const PaymentPage = () => {
                 <CardFlipGame
                   prizes={lucky.prizes}
                   spinning={spinning}
+                  spinId={spinId}
                   resultPrizeId={pendingPrize}
                   onSpinEnd={handleSpinEnd}
                   onPlay={handleSpin}
-                  disabled={spinning || (spinUsed && !lucky.cancelled)}
+                  disabled={spinning}
                 />
               ) : gameType === 'boxes' ? (
                 <MysteryBoxGame
                   prizes={lucky.prizes}
                   spinning={spinning}
+                  spinId={spinId}
                   resultPrizeId={pendingPrize}
                   onSpinEnd={handleSpinEnd}
                   onPlay={handleSpin}
-                  disabled={spinning || (spinUsed && !lucky.cancelled)}
+                  disabled={spinning}
                 />
               ) : (
                 <LuckyWheel

@@ -29,6 +29,7 @@ const AdminDashboard = () => {
   const [previewGame, setPreviewGame] = useState('wheel');
   const [previewSpinning, setPreviewSpinning] = useState(false);
   const [previewPrize, setPreviewPrize] = useState(null);
+  const [previewSpinId, setPreviewSpinId] = useState(0);
   const [savingGameSetting, setSavingGameSetting] = useState(false);
 
   // Search
@@ -113,6 +114,7 @@ const AdminDashboard = () => {
     if (previewSpinning) return;
     setPreviewSpinning(true);
     setPreviewPrize('cash2');
+    setPreviewSpinId((prev) => prev + 1);
   };
 
   const handleTestPreviewEnd = () => {
@@ -782,6 +784,7 @@ const AdminDashboard = () => {
                   <CardFlipGame
                     prizes={DEMO_PRIZES}
                     spinning={previewSpinning}
+                    spinId={previewSpinId}
                     resultPrizeId={previewPrize}
                     onSpinEnd={handleTestPreviewEnd}
                     onPlay={handleTestPreviewPlay}
@@ -791,6 +794,7 @@ const AdminDashboard = () => {
                   <MysteryBoxGame
                     prizes={DEMO_PRIZES}
                     spinning={previewSpinning}
+                    spinId={previewSpinId}
                     resultPrizeId={previewPrize}
                     onSpinEnd={handleTestPreviewEnd}
                     onPlay={handleTestPreviewPlay}
