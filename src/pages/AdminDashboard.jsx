@@ -7,6 +7,7 @@ import MysteryBoxGame from '../components/MysteryBoxGame';
 import toast from 'react-hot-toast';
 
 const DEMO_PRIZES = [
+  { id: 'turn1', label: '+1 Lượt chơi', short: '+1 Lượt', kind: 'turn', value: 1 },
   { id: 'cash1', label: '10.000đ', short: '10K', kind: 'cash', value: 10000 },
   { id: 'cash2', label: '2.000đ', short: '2K', kind: 'cash', value: 2000 },
   { id: 'cash3', label: '15.000đ', short: '15K', kind: 'cash', value: 15000 },
@@ -26,6 +27,7 @@ const AdminDashboard = () => {
   const [gameSetting, setGameSetting] = useState(null);
   const [selectedGameMode, setSelectedGameMode] = useState('auto');
   const [selectedManualGame, setSelectedManualGame] = useState('wheel');
+  const [spinsPerWeek, setSpinsPerWeek] = useState(1);
   const [previewGame, setPreviewGame] = useState('wheel');
   const [previewSpinning, setPreviewSpinning] = useState(false);
   const [previewPrize, setPreviewPrize] = useState(null);
@@ -47,6 +49,7 @@ const AdminDashboard = () => {
   const [formNote, setFormNote] = useState('');
   const [formUsername, setFormUsername] = useState('');
   const [formPassword, setFormPassword] = useState('');
+  const [formCustomSpins, setFormCustomSpins] = useState('');
 
   // Bulk update
   const [showBulkForm, setShowBulkForm] = useState(false);
@@ -84,6 +87,7 @@ const AdminDashboard = () => {
         setGameSetting(res.data.data);
         setSelectedGameMode(res.data.data.mode || 'auto');
         setSelectedManualGame(res.data.data.manualGame || 'wheel');
+        setSpinsPerWeek(res.data.data.spinsPerWeek || 1);
         setPreviewGame(res.data.data.activeGame || 'wheel');
       }
     } catch (error) {
@@ -96,11 +100,12 @@ const AdminDashboard = () => {
     try {
       const res = await api.put('/payments/game-setting', {
         mode: selectedGameMode,
-        manualGame: selectedManualGame
+        manualGame: selectedManualGame,
+        spinsPerWeek: Math.max(1, parseInt(spinsPerWeek) || 1)
       });
       if (res.data?.success) {
         setGameSetting(res.data.data);
-        toast.success('Đã lưu cấu hình trò chơi thành công!');
+        toast.success(`Đã lưu cấu hình trò chơi thành công! (${res.data.data.spinsPerWeek} lượt/tuần)`);
       }
     } catch (error) {
       console.error('Update game setting error:', error);
@@ -119,7 +124,6 @@ const AdminDashboard = () => {
 
   const handleTestPreviewEnd = () => {
     setPreviewSpinning(false);
-    setPreviewPrize(null);
     toast.success('Demo: Bạn vừa trúng 2.000đ! 🎉');
   };
 
@@ -201,6 +205,11 @@ const AdminDashboard = () => {
         if (formAmount !== '') updateData.amountDue = Number(formAmount);
         if (formUsername.trim() !== '') updateData.username = formUsername;
         if (formPassword.trim()) updateData.password = formPassword;
+        if (formCustomSpins.trim() !== '') {
+          updateData.customSpinsPerWeek = Math.max(1, Number(formCustomSpins));
+        } else {
+          updateData.customSpinsPerWeek = null;
+        }
         
         await api.put(`/members/${editingMember._id}`, updateData);
         toast.success('Cập nhật thành công!');
@@ -211,6 +220,9 @@ const AdminDashboard = () => {
         if (formAmount !== '') createData.amountDue = Number(formAmount);
         if (formUsername.trim()) createData.username = formUsername;
         if (formPassword.trim()) createData.password = formPassword;
+        if (formCustomSpins.trim() !== '') {
+          createData.customSpinsPerWeek = Math.max(1, Number(formCustomSpins));
+        }
         
         await api.post('/members', createData);
         toast.success('Thêm thành viên thành công!');
@@ -230,6 +242,7 @@ const AdminDashboard = () => {
     setFormNote(member.note || '');
     setFormUsername(member.username || '');
     setFormPassword(''); // don't load password
+    setFormCustomSpins(member.customSpinsPerWeek !== undefined && member.customSpinsPerWeek !== null ? member.customSpinsPerWeek.toString() : '');
     setShowForm(true);
   };
 
@@ -334,6 +347,7 @@ const AdminDashboard = () => {
     setFormNote('');
     setFormUsername('');
     setFormPassword('');
+    setFormCustomSpins('');
   };
 
   const unpaidCount = members.filter((m) => m.paymentStatus === 'unpaid').length;
@@ -486,6 +500,7 @@ const AdminDashboard = () => {
                 <MemberRow
                   key={member._id}
                   member={member}
+                  defaultSpinsPerWeek={spinsPerWeek || gameSetting?.spinsPerWeek || 1}
                   isSelected={selectedMembers.includes(member._id)}
                   onSelect={(checked) => handleSelectMember(member._id, checked)}
                   onEdit={() => handleEdit(member)}
@@ -682,8 +697,8 @@ const AdminDashboard = () => {
                 <div className="grid sm:grid-cols-3 gap-3">
                   {[
                     { id: 'wheel', name: '🎡 Vòng quay may mắn', desc: 'Vòng quay 7 ô sắc màu' },
-                    { id: 'cards', name: '🃏 Lật thẻ bài may mắn', desc: '3 thẻ bài ma thuật 3D' },
-                    { id: 'boxes', name: '🎁 Hộp quà bí ẩn', desc: '3 hộp quà bung nắp hào quang' }
+                    { id: 'cards', name: '🃏 Lật 5 thẻ bài may mắn', desc: '5 thẻ bài ma thuật 3D xoay vòng 10s' },
+                    { id: 'boxes', name: '🎁 5 Hộp quà bí ẩn', desc: '5 hộp quà rung bần bật 10s tung nắp' }
                   ].map((g) => (
                     <div
                       key={g.id}
@@ -701,6 +716,54 @@ const AdminDashboard = () => {
                 </div>
               </div>
             )}
+
+            {/* Setting: Number of Spins Per Week */}
+            <div className="mb-6 p-4 sm:p-5 bg-surface/80 rounded-2xl border border-border-color shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🎯</span>
+                    <h4 className="text-sm sm:text-base font-bold text-main m-0">Số lượt chơi mỗi tuần cho thành viên</h4>
+                  </div>
+                  <p className="text-xs text-muted m-0 mt-1 max-w-xl leading-relaxed">
+                    Mỗi thành viên được tham gia tối đa bao nhiêu lần trong 1 tuần (áp dụng chung cho cả 3 trò chơi). Hệ thống tự động làm mới lượt chơi vào 00:00 Thứ 2 hàng tuần.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                  {/* Preset buttons */}
+                  <div className="flex items-center gap-1 p-1 bg-dark/60 rounded-xl border border-border-color">
+                    {[1, 2, 3, 5].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setSpinsPerWeek(preset)}
+                        className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          Number(spinsPerWeek) === preset
+                            ? 'bg-primary text-black shadow-md shadow-primary/20'
+                            : 'text-muted hover:text-main hover:bg-white/5'
+                        }`}
+                      >
+                        {preset} lần
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Number input */}
+                  <div className="flex items-center gap-2 bg-dark/60 border border-border-color rounded-xl px-3 py-1.5 w-28">
+                    <input
+                      type="number"
+                      min="1"
+                      max="50"
+                      value={spinsPerWeek}
+                      onChange={(e) => setSpinsPerWeek(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="bg-transparent text-main font-bold text-sm w-full outline-none text-center"
+                    />
+                    <span className="text-xs text-muted font-medium">lượt</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <button
               type="button"
@@ -754,7 +817,7 @@ const AdminDashboard = () => {
                     previewGame === 'cards' ? 'bg-primary text-black' : 'text-muted hover:text-main'
                   }`}
                 >
-                  🃏 Lật thẻ bài
+                  🃏 Lật 5 thẻ
                 </button>
                 <button
                   type="button"
@@ -763,7 +826,7 @@ const AdminDashboard = () => {
                     previewGame === 'boxes' ? 'bg-primary text-black' : 'text-muted hover:text-main'
                   }`}
                 >
-                  🎁 Hộp quà
+                  🎁 Mở 5 hộp
                 </button>
               </div>
             </div>
@@ -910,6 +973,21 @@ const AdminDashboard = () => {
                   placeholder="VD: Khách của A..."
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-muted mb-1.5 flex items-center justify-between">
+                  <span>🎯 Lượt chơi tuần này (tùy chỉnh riêng)</span>
+                  <span className="text-xs text-primary-light">Mặc định: {spinsPerWeek} lượt</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={formCustomSpins}
+                  onChange={(e) => setFormCustomSpins(e.target.value)}
+                  className="input-field"
+                  placeholder={`Để trống để theo mặc định (${spinsPerWeek} lượt/tuần)`}
+                />
+              </div>
               <div className="flex gap-3 pt-2">
                 <button type="submit" className="btn-primary flex-1">
                   {editingMember ? 'Cập nhật' : 'Thêm mới'}
@@ -1038,9 +1116,13 @@ const AdminDashboard = () => {
 };
 
 // ===== Member Row Component =====
-const MemberRow = ({ member, isSelected, onSelect, onEdit, onDelete, onUpdateAmount, onUpdateAvatar, onResetSpins }) => {
+const MemberRow = ({ member, defaultSpinsPerWeek = 1, isSelected, onSelect, onEdit, onDelete, onUpdateAmount, onUpdateAvatar, onResetSpins }) => {
   const [amount, setAmount] = useState(member.amountDue.toString());
   const [isEditing, setIsEditing] = useState(false);
+
+  const maxSpins = member.customSpinsPerWeek || defaultSpinsPerWeek || 1;
+  const spinCount = member.spinCount || 0;
+  const isLimitReached = spinCount >= maxSpins;
 
   const handleSaveAmount = () => {
     if (amount !== member.amountDue.toString()) {
@@ -1096,6 +1178,16 @@ const MemberRow = ({ member, isSelected, onSelect, onEdit, onDelete, onUpdateAmo
                   👤 {member.username}
                 </span>
               )}
+              <span
+                className={`text-xs font-medium px-2 py-0.5 rounded border transition-colors ${
+                  isLimitReached
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                }`}
+                title={`Đã chơi ${spinCount}/${maxSpins} lượt trong tuần`}
+              >
+                🎮 {spinCount}/{maxSpins} lượt{member.customSpinsPerWeek ? ' (riêng)' : ''}
+              </span>
             </div>
           </div>
         </div>

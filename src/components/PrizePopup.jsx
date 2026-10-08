@@ -9,8 +9,9 @@ const COLORS = ['#34D399', '#5EEAD4', '#A78BFA', '#F9A8D4', '#FFB45E', '#E8C14A'
  * A win gets the club medal, a burst of confetti and light rays; a miss gets a
  * quiet card with no fanfare, so "better luck next time" does not feel like a prize.
  */
-const PrizePopup = ({ open, prize, discount, newAmount, isLimitReached, isAmountTooHigh, onClose }) => {
-  const won = discount > 0;
+const PrizePopup = ({ open, prize, discount, newAmount, isLimitReached, isAmountTooHigh, maxSpins = 1, onClose, onCancel }) => {
+  const isTurnPrize = prize?.kind === 'turn' || prize?.id === 'turn1' || (prize?.label && prize.label.includes('+1'));
+  const won = discount > 0 || isTurnPrize;
 
   const pieces = useMemo(
     () =>
@@ -154,7 +155,7 @@ const PrizePopup = ({ open, prize, discount, newAmount, isLimitReached, isAmount
             </h2>
 
             <p className="mt-3 text-sm text-muted leading-relaxed m-0 px-2">
-              Mỗi tuần chỉ được thử nhân phẩm 1 lần thôi má ơi! Dành cơ hội cho người khác với, tham thì thâm đó nha 🤪
+              Mỗi tuần chỉ được thử nhân phẩm tối đa {maxSpins} lần thôi má ơi! Dành cơ hội cho người khác với, tham thì thâm đó nha 🤪
             </p>
 
             <button type="button" autoFocus onClick={onClose} className="btn-primary w-full h-12 mt-6 text-[15px]">
@@ -246,13 +247,22 @@ const PrizePopup = ({ open, prize, discount, newAmount, isLimitReached, isAmount
           </h2>
 
           {won ? (
-            <div className="mt-5 rounded-2xl border border-border-color bg-black/25 px-5 py-4">
-              <p className="text-[13px] text-muted m-0">Đã trừ trực tiếp vào hóa đơn</p>
-              <p className="mt-1 text-[15px] font-semibold text-main m-0">
-                Còn phải thanh toán{' '}
-                <span className="font-display text-[22px] font-extrabold text-primary-light">{formatCurrency(newAmount)}</span>
-              </p>
-            </div>
+            isTurnPrize ? (
+              <div className="mt-5 rounded-2xl border border-amber-400/40 bg-amber-400/10 px-5 py-4">
+                <p className="text-[14px] text-amber-300 font-bold m-0">🎟️ Tặng thêm 1 lượt may mắn!</p>
+                <p className="mt-1 text-[13px] text-muted m-0">
+                  Hệ thống đã tự động cộng thêm 1 lượt chơi cho bạn. Hãy tiếp tục thử vận may ngay nhé! 🚀
+                </p>
+              </div>
+            ) : (
+              <div className="mt-5 rounded-2xl border border-border-color bg-black/25 px-5 py-4">
+                <p className="text-[13px] text-muted m-0">Đã trừ trực tiếp vào hóa đơn</p>
+                <p className="mt-1 text-[15px] font-semibold text-main m-0">
+                  Còn phải thanh toán{' '}
+                  <span className="font-display text-[22px] font-extrabold text-primary-light">{formatCurrency(newAmount)}</span>
+                </p>
+              </div>
+            )
           ) : (
             <p className="mt-3 text-sm text-muted leading-relaxed m-0 px-2">
               Bàn tay xui xẻo này lại bốc trượt rồi! Đen thôi đỏ quên đi nha 🤣, mời bạn thanh toán đủ bill nhé!
@@ -260,8 +270,24 @@ const PrizePopup = ({ open, prize, discount, newAmount, isLimitReached, isAmount
           )}
 
           <button type="button" autoFocus onClick={onClose} className="btn-primary w-full h-12 mt-6 text-[15px]">
-            {won ? 'Tuyệt vời, tiếp tục thanh toán' : 'Đã hiểu'}
+            {isTurnPrize ? 'Quá đã! Chơi tiếp ngay 🚀' : won ? 'Tuyệt vời, tiếp tục thanh toán' : 'Đã hiểu'}
           </button>
+
+          {won && !isTurnPrize && discount > 0 && onCancel && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onCancel();
+              }}
+              className="w-full mt-2.5 py-2 text-[13px] font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Chê, không thèm lấy!
+            </button>
+          )}
         </div>
       </div>
     </div>,

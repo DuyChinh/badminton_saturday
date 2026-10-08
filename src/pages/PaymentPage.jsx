@@ -26,6 +26,36 @@ const BackLink = () => (
 
 const CONFETTI_COLORS = ['#34D399', '#5EEAD4', '#A78BFA', '#FFB45E', '#E8C14A', '#FFFFFF'];
 
+const GAME_TABS = [
+  { id: 'wheel', label: 'Vòng quay', icon: '🎡' },
+  { id: 'cards', label: '5 Lá bài', icon: '🃏' },
+  { id: 'boxes', label: '5 Hộp quà', icon: '🎁' },
+];
+
+const GAME_CATALOG = {
+  wheel: {
+    id: 'wheel',
+    name: 'Vòng quay may mắn',
+    actionText: 'Quay để thử vận may',
+    spinningText: 'Đang quay…',
+    bubbleText: 'Hãy tham gia vòng quay may mắn để test nhân phẩm, biết đâu gỡ lại được tiền cước! 🤪🏸',
+  },
+  cards: {
+    id: 'cards',
+    name: 'Lật 5 thẻ bài may mắn',
+    actionText: 'Lật thẻ thử vận may',
+    spinningText: 'Đang mở thẻ…',
+    bubbleText: 'Chọn 1 trong 5 lá bài may mắn để test nhân phẩm, biết đâu gỡ lại được tiền cước! 🃏🏸',
+  },
+  boxes: {
+    id: 'boxes',
+    name: '5 Hộp quà bí ẩn',
+    actionText: 'Mở hộp thử vận may',
+    spinningText: 'Đang mở hộp…',
+    bubbleText: 'Mở 1 trong 5 hộp quà may mắn để test nhân phẩm, biết đâu gỡ lại được tiền cước! 🎁🏸',
+  },
+};
+
 const PaymentPage = () => {
   const { memberId } = useParams();
   const navigate = useNavigate();
@@ -39,6 +69,7 @@ const PaymentPage = () => {
   const [pendingPrize, setPendingPrize] = useState(null);
   const [spinId, setSpinId] = useState(0);
   const [cancelling, setCancelling] = useState(false);
+  const [selectedGame, setSelectedGame] = useState(null);
   const pendingSpin = useRef(null);
   const [popup, setPopup] = useState(null);
   const [showOdds, setShowOdds] = useState(false);
@@ -113,12 +144,16 @@ const PaymentPage = () => {
   const handleSpin = async () => {
     if (spinning) return;
     setSpinning(true);
+    const currentGameType = selectedGame || data?.lucky?.gameType || 'wheel';
     try {
-      const res = await api.post(`/payments/lucky-spin/${memberId}`);
+      const res = await api.post(`/payments/lucky-spin/${memberId}`, {
+        gameType: currentGameType,
+      });
       if (res.data.data.outOfTurns) {
         setSpinning(false);
         setPopup({
-          isLimitReached: true
+          isLimitReached: true,
+          maxSpins: res.data.data.maxSpins || data?.lucky?.maxSpins || 1,
         });
         return;
       }
@@ -139,13 +174,13 @@ const PaymentPage = () => {
     }
   };
 
-  // Fired by the wheel once it has come to rest on the drawn slice
+  // Fired by the game once animation finishes
   const handleSpinEnd = () => {
     const payload = pendingSpin.current;
     pendingSpin.current = null;
     setSpinning(false);
-    setPendingPrize(null);
     if (!payload) return;
+    setPendingPrize(payload.prizeId);
 
     if (payload.discount > 0) setImgLoaded(false); // the QR encodes the amount
     setData((prev) => ({
@@ -154,8 +189,12 @@ const PaymentPage = () => {
       payment: payload.payment,
       lucky: {
         ...prev.lucky,
-        spun: true,
+        spun: (payload.spinCount ?? ((prev.lucky?.spinCount || 0) + 1)) >= (payload.maxSpins || prev.lucky?.maxSpins || 1),
+        spinCount: payload.spinCount ?? ((prev.lucky?.spinCount || 0) + 1),
+        maxSpins: payload.maxSpins || prev.lucky?.maxSpins || 1,
+        remainingSpins: payload.remainingSpins ?? Math.max(0, (payload.maxSpins || 1) - (payload.spinCount || 1)),
         cancelled: false,
+        gameType: payload.gameType || prev.lucky?.gameType || 'wheel',
         result: {
           prizeId: payload.prizeId,
           discount: payload.discount,
@@ -165,9 +204,12 @@ const PaymentPage = () => {
     }));
 
     setPopup({
+      id: payload.prizeId,
       label: payload.prizeLabel,
+      kind: payload.prizeKind || (payload.prizeId === 'turn1' ? 'turn' : 'cash'),
       discount: payload.discount,
       newAmount: payload.member.amountDue,
+      maxSpins: payload.maxSpins || data?.lucky?.maxSpins || 1,
     });
   };
 
@@ -176,6 +218,7 @@ const PaymentPage = () => {
     try {
       const res = await api.post(`/payments/lucky-cancel/${memberId}`);
       if (discount > 0) setImgLoaded(false);
+      setPendingPrize(null);
       setData((prev) => ({
         ...prev,
         member: { ...prev.member, amountDue: res.data.data.member.amountDue },
@@ -307,53 +350,81 @@ const PaymentPage = () => {
 
   const { member, payment, lucky } = data;
   const discount = lucky?.result?.discount ?? 0;
-  const spinUsed = Boolean(lucky?.spun);
+  const isCancelled = Boolean(lucky?.cancelled);
+  const maxSpins = lucky?.maxSpins || 1;
+  const spinCount = lucky?.spinCount || 0;
+  const remainingSpins = lucky?.remainingSpins ?? Math.max(0, maxSpins - spinCount);
+  const outOfTurns = remainingSpins <= 0;
+  const hasActiveResult = Boolean(lucky?.result && !isCancelled);
   const wonPrize = lucky?.result ? lucky.prizes.find((p) => p.id === lucky.result.prizeId) : null;
-  const gameType = lucky?.gameType || 'wheel';
-  const gameInfo = lucky?.gameInfo || {
-    name: 'Vòng quay may mắn',
-    actionText: 'Quay để thử vận may',
-    spinningText: 'Đang quay…',
-    bubbleText: 'Hãy tham gia vòng quay may mắn để test nhân phẩm, biết đâu gỡ lại được tiền cước! 🤪🏸'
-  };
+  const activePrizeId = pendingPrize || lucky?.result?.prizeId || null;
+  const effectiveGameType = selectedGame || lucky?.gameType || 'wheel';
+  const gameInfo = GAME_CATALOG[effectiveGameType] || lucky?.gameInfo || GAME_CATALOG.wheel;
 
   return (
     <div className="w-full animate-slide-up">
       <BackLink />
 
-      {/* Name, status and the wheel share one band so the wheel can be large */}
-      <div className="mt-0 grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-8 gap-y-3">
-        <div className="lg:self-start lg:pt-1">
-          <p className="text-xs font-bold tracking-[0.16em] uppercase text-primary m-0">Hóa đơn thanh toán</p>
-          <h1 className="font-display text-[clamp(1.4rem,2.4vw,1.9rem)] font-extrabold text-main mt-1.5 m-0">
+      {/* Name, status and the wheel share one band so the game can have ample room */}
+      <div className="mt-0 grid lg:grid-cols-[auto_1fr] xl:grid-cols-[auto_1fr_auto] items-center gap-x-6 xl:gap-x-10 2xl:gap-x-12 gap-y-3">
+        <div className="lg:self-start lg:pt-1 shrink-0 min-w-fit">
+          <p className="text-xs font-bold tracking-[0.16em] uppercase text-primary m-0 whitespace-nowrap">
+            Hóa đơn thanh toán
+          </p>
+          <h1 className="font-display text-[clamp(1.35rem,2.2vw,1.9rem)] font-extrabold text-main mt-1.5 m-0 whitespace-nowrap">
             {member.name}
           </h1>
-          <p className="font-mono text-[13px] text-muted mt-1 m-0">#{member.memberCode}</p>
-          <span className="mt-3 inline-flex items-center gap-2 h-8 px-3 rounded-full bg-warn/12 text-warn text-[12.5px] font-semibold">
-            <span className="live w-2 h-2 rounded-full bg-warn" />
+          <p className="font-mono text-[13px] text-muted mt-1 m-0 whitespace-nowrap">#{member.memberCode}</p>
+          <span className="mt-3 inline-flex items-center gap-2 h-8 px-3 rounded-full bg-warn/12 text-warn text-[12.5px] font-semibold whitespace-nowrap shrink-0">
+            <span className="live w-2 h-2 rounded-full bg-warn shrink-0" />
             Đang chờ chuyển khoản
           </span>
         </div>
 
         {lucky && (
-          <div className="flex flex-col items-center gap-2.5 justify-self-center w-full max-w-[400px] shrink-0">
+          <div className="flex flex-col items-center gap-2.5 justify-self-center w-full max-w-[880px] shrink-0">
+            {/* Game Selector Tabs */}
+            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-surface/90 border border-border-color shadow-sm backdrop-blur-md mb-0.5">
+              {GAME_TABS.map((tab) => {
+                const isActive = effectiveGameType === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      if (!spinning) setSelectedGame(tab.id);
+                    }}
+                    disabled={spinning}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-primary text-white shadow-md shadow-primary/25 scale-[1.02]'
+                        : 'text-muted hover:text-main hover:bg-white/5'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    <span className="text-sm">{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="relative flex justify-center w-full">
-              {gameType === 'cards' ? (
+              {effectiveGameType === 'cards' ? (
                 <CardFlipGame
                   prizes={lucky.prizes}
                   spinning={spinning}
                   spinId={spinId}
-                  resultPrizeId={pendingPrize}
+                  resultPrizeId={activePrizeId}
                   onSpinEnd={handleSpinEnd}
                   onPlay={handleSpin}
                   disabled={spinning}
                 />
-              ) : gameType === 'boxes' ? (
+              ) : effectiveGameType === 'boxes' ? (
                 <MysteryBoxGame
                   prizes={lucky.prizes}
                   spinning={spinning}
                   spinId={spinId}
-                  resultPrizeId={pendingPrize}
+                  resultPrizeId={activePrizeId}
                   onSpinEnd={handleSpinEnd}
                   onPlay={handleSpin}
                   disabled={spinning}
@@ -362,77 +433,106 @@ const PaymentPage = () => {
                 <LuckyWheel
                   prizes={lucky.prizes}
                   spinning={spinning}
-                  resultPrizeId={pendingPrize}
+                  resultPrizeId={activePrizeId}
                   onSpinEnd={handleSpinEnd}
                   size="clamp(190px, 20vw, 260px)"
                 />
               )}
             </div>
 
-            {!spinUsed ? (
-              <button
-                type="button"
-                onClick={handleSpin}
-                disabled={spinning}
-                className="btn-primary h-11 px-7 text-[14.5px] disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
-              >
-                <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 12a8 8 0 11-2.4-5.7M20 4v5h-5" />
-                </svg>
-                {spinning ? gameInfo.spinningText : gameInfo.actionText}
-              </button>
-            ) : lucky.cancelled ? (
+            {/* Action buttons area */}
+            {isCancelled ? (
               <div className="flex flex-col items-center gap-1.5 text-center">
                 <p className="text-[12.5px] text-muted m-0">
                   Đã hoàn lại số tiền ban đầu
                 </p>
-                <button
-                  type="button"
-                  onClick={handleSpin}
-                  disabled={spinning}
-                  className="btn-primary h-9 px-5 text-sm disabled:opacity-60 disabled:cursor-not-allowed shadow-md shadow-primary/20"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 12a8 8 0 11-2.4-5.7M20 4v5h-5" />
-                  </svg>
-                  {spinning ? gameInfo.spinningText : 'Cay quá, phục thù!'}
-                </button>
+                {!outOfTurns ? (
+                  <button
+                    type="button"
+                    onClick={handleSpin}
+                    disabled={spinning}
+                    className="btn-primary h-9 px-5 text-sm disabled:opacity-60 disabled:cursor-not-allowed shadow-md shadow-primary/20"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 12a8 8 0 11-2.4-5.7M20 4v5h-5" />
+                    </svg>
+                    {spinning ? gameInfo.spinningText : 'Cay quá, phục thù!'}
+                  </button>
+                ) : (
+                  <span className="text-xs text-muted font-medium">Hết lượt chơi tuần này</span>
+                )}
               </div>
-            ) : (
+            ) : hasActiveResult ? (
               <div className="flex flex-col items-center gap-1.5 text-center">
                 <p className={`text-sm font-bold m-0 ${wonPrize?.kind === 'none' ? 'text-muted' : 'text-primary-light'}`}>
                   {wonPrize?.label}
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleSpin}
-                    disabled={spinning}
-                    className="btn-primary h-9 px-5 text-[13.5px] disabled:opacity-60 disabled:cursor-not-allowed shadow-md shadow-primary/20"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 12a8 8 0 11-2.4-5.7M20 4v5h-5" />
-                    </svg>
-                    {spinning ? gameInfo.spinningText : gameInfo.actionText}
-                  </button>
+                  {!outOfTurns && (
+                    <button
+                      type="button"
+                      onClick={handleSpin}
+                      disabled={spinning}
+                      className="btn-primary h-9 px-5 text-[13.5px] disabled:opacity-60 disabled:cursor-not-allowed shadow-md shadow-primary/20"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 12a8 8 0 11-2.4-5.7M20 4v5h-5" />
+                      </svg>
+                      {spinning ? gameInfo.spinningText : discount > 0 ? 'Thử vận may tiếp' : 'Cay quá, phục thù!'}
+                    </button>
+                  )}
                   {discount > 0 && (
                     <button
                       type="button"
                       onClick={handleCancelLucky}
                       disabled={cancelling || spinning}
-                      className="h-9 px-4 text-[13px] font-semibold text-white bg-[#ef4444] hover:bg-[#dc2626] rounded-xl shadow-md transition-colors disabled:opacity-60 cursor-pointer"
+                      className="h-9 px-4 text-[13px] font-semibold text-white bg-[#ef4444] hover:bg-[#dc2626] rounded-xl shadow-md shadow-red-500/20 transition-all disabled:opacity-60 cursor-pointer flex items-center gap-1.5"
                     >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
                       {cancelling ? 'Đang hoàn lại…' : 'Chê, không thèm lấy!'}
                     </button>
                   )}
                 </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {!outOfTurns ? (
+                  <button
+                    type="button"
+                    onClick={handleSpin}
+                    disabled={spinning}
+                    className="btn-primary h-11 px-7 text-[14.5px] disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
+                  >
+                    <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 12a8 8 0 11-2.4-5.7M20 4v5h-5" />
+                    </svg>
+                    {spinning ? gameInfo.spinningText : gameInfo.actionText}
+                  </button>
+                ) : (
+                  <span className="text-xs text-muted font-medium">Hết lượt chơi tuần này</span>
+                )}
+                {discount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleCancelLucky}
+                    disabled={cancelling || spinning}
+                    className="h-11 px-5 text-[13.5px] font-semibold text-white bg-[#ef4444] hover:bg-[#dc2626] rounded-xl shadow-md shadow-red-500/20 transition-all disabled:opacity-60 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    {cancelling ? 'Đang hoàn lại…' : 'Chê, không thèm lấy!'}
+                  </button>
+                )}
               </div>
             )}
           </div>
         )}
 
         {/* Column 3: Humorous Speech Bubble on Desktop */}
-        <div className="hidden lg:flex justify-start items-center">
+        <div className="hidden xl:flex justify-start items-center">
           <div className="relative bg-surface/80 backdrop-blur-md border border-primary/30 p-3.5 rounded-2xl shadow-xl text-center max-w-[200px]">
             {/* Bubble tail pointing left */}
             <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-4 h-4 bg-surface/90 border-l border-b border-primary/30 rotate-45" />
@@ -557,12 +657,14 @@ const PaymentPage = () => {
 
       <PrizePopup
         open={Boolean(popup)}
-        prize={popup && !popup.isLimitReached && !popup.isAmountTooHigh ? { label: popup.label } : null}
+        prize={popup && !popup.isLimitReached && !popup.isAmountTooHigh ? { id: popup.id, label: popup.label, kind: popup.kind } : null}
         discount={popup?.discount ?? 0}
         newAmount={popup?.newAmount ?? 0}
         isLimitReached={popup?.isLimitReached}
         isAmountTooHigh={popup?.isAmountTooHigh}
+        maxSpins={popup?.maxSpins || lucky?.maxSpins || 1}
         onClose={() => setPopup(null)}
+        onCancel={handleCancelLucky}
       />
 
       {showOdds && (

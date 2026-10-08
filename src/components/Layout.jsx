@@ -263,7 +263,7 @@ const Layout = ({ children }) => {
       </header>
 
       <main className="flex-1 relative z-10 w-full">
-        <div className={`app-container ${location.pathname.startsWith('/payment') ? 'pt-2.5 pb-6 sm:pt-3 sm:pb-8' : 'py-6 sm:py-8'}`}>{children}</div>
+        <div className={`app-container ${location.pathname.startsWith('/payment') ? '!max-w-[1480px] 2xl:!max-w-[1600px] pt-2.5 pb-6 sm:pt-3 sm:pb-8' : 'py-6 sm:py-8'}`}>{children}</div>
       </main>
 
       <footer className="relative z-10 border-t border-border-light mt-auto">

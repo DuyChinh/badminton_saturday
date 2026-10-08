@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
  */
 
 const SLICE = {
+  turn1: { fill: '#7C2D12', text: '#FED7AA' },
   cash1: { fill: '#0E4D3A', text: '#6EE7B7' },
   cash2: { fill: '#0E4A63', text: '#7DD3FC' },
   cash3: { fill: '#1E3A8A', text: '#A5B4FC' },
@@ -44,6 +45,12 @@ const PrizeIcon = ({ kind, color, x, y }) => {
   };
   return (
     <g transform={`translate(${x - 9} ${y - 9}) scale(0.75)`}>
+      {kind === 'turn' && (
+        <g {...common}>
+          <rect x="2" y="6" width="20" height="12" rx="3" />
+          <path d="M12 9v6M9 12h6" />
+        </g>
+      )}
       {kind === 'cash' && (
         <g {...common}>
           <rect x="1.5" y="5" width="21" height="14" rx="2.5" />
