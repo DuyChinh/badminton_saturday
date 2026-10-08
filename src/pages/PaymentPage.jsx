@@ -334,8 +334,8 @@ const PaymentPage = () => {
         </div>
 
         {lucky && (
-          <div className="flex flex-col items-center gap-2.5 justify-self-center">
-            <div className="relative flex justify-center">
+          <div className="flex flex-col items-center gap-2.5 justify-self-center w-full max-w-[400px] shrink-0">
+            <div className="relative flex justify-center w-full">
               {gameType === 'cards' ? (
                 <CardFlipGame
                   prizes={lucky.prizes}
@@ -363,17 +363,6 @@ const PaymentPage = () => {
                   size="clamp(190px, 20vw, 260px)"
                 />
               )}
-
-              {/* Humorous Message Bubble */}
-              <div className="hidden lg:block absolute top-1/2 -right-16 translate-x-full -translate-y-1/2 w-[180px] pointer-events-none">
-                <div className="relative bg-surface/80 backdrop-blur-md border border-primary/30 p-3.5 rounded-2xl shadow-xl text-center">
-                  {/* Bubble tail pointing left */}
-                  <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-4 h-4 bg-surface/90 border-l border-b border-primary/30 rotate-45"></div>
-                  <p className="text-[13px] font-medium text-main m-0 leading-relaxed">
-                    {gameInfo.bubbleText}
-                  </p>
-                </div>
-              </div>
             </div>
 
             {!spinUsed ? (
@@ -438,7 +427,16 @@ const PaymentPage = () => {
           </div>
         )}
 
-        <div aria-hidden="true" className="hidden lg:block" />
+        {/* Column 3: Humorous Speech Bubble on Desktop */}
+        <div className="hidden lg:flex justify-start items-center">
+          <div className="relative bg-surface/80 backdrop-blur-md border border-primary/30 p-3.5 rounded-2xl shadow-xl text-center max-w-[200px]">
+            {/* Bubble tail pointing left */}
+            <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-4 h-4 bg-surface/90 border-l border-b border-primary/30 rotate-45" />
+            <p className="text-[13px] font-medium text-main m-0 leading-relaxed">
+              {gameInfo.bubbleText}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* The ticket: details on the left, QR on the right */}
