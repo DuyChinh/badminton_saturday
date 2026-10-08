@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import LuckyWheel from '../components/LuckyWheel';
+import CardFlipGame from '../components/CardFlipGame';
+import MysteryBoxGame from '../components/MysteryBoxGame';
 import PrizePopup from '../components/PrizePopup';
 import toast from 'react-hot-toast';
 
@@ -305,6 +307,13 @@ const PaymentPage = () => {
   const discount = lucky?.result?.discount ?? 0;
   const spinUsed = Boolean(lucky?.spun);
   const wonPrize = lucky?.result ? lucky.prizes.find((p) => p.id === lucky.result.prizeId) : null;
+  const gameType = lucky?.gameType || 'wheel';
+  const gameInfo = lucky?.gameInfo || {
+    name: 'Vòng quay may mắn',
+    actionText: 'Quay để thử vận may',
+    spinningText: 'Đang quay…',
+    bubbleText: 'Hãy tham gia vòng quay may mắn để test nhân phẩm, biết đâu gỡ lại được tiền cước! 🤪🏸'
+  };
 
   return (
     <div className="w-full animate-slide-up">
@@ -326,21 +335,42 @@ const PaymentPage = () => {
 
         {lucky && (
           <div className="flex flex-col items-center gap-2.5 justify-self-center">
-            <div className="relative">
-              <LuckyWheel
-                prizes={lucky.prizes}
-                spinning={spinning}
-                resultPrizeId={pendingPrize}
-                onSpinEnd={handleSpinEnd}
-                size="clamp(190px, 20vw, 260px)"
-              />
+            <div className="relative flex justify-center">
+              {gameType === 'cards' ? (
+                <CardFlipGame
+                  prizes={lucky.prizes}
+                  spinning={spinning}
+                  resultPrizeId={pendingPrize}
+                  onSpinEnd={handleSpinEnd}
+                  onPlay={handleSpin}
+                  disabled={spinning || (spinUsed && !lucky.cancelled)}
+                />
+              ) : gameType === 'boxes' ? (
+                <MysteryBoxGame
+                  prizes={lucky.prizes}
+                  spinning={spinning}
+                  resultPrizeId={pendingPrize}
+                  onSpinEnd={handleSpinEnd}
+                  onPlay={handleSpin}
+                  disabled={spinning || (spinUsed && !lucky.cancelled)}
+                />
+              ) : (
+                <LuckyWheel
+                  prizes={lucky.prizes}
+                  spinning={spinning}
+                  resultPrizeId={pendingPrize}
+                  onSpinEnd={handleSpinEnd}
+                  size="clamp(190px, 20vw, 260px)"
+                />
+              )}
+
               {/* Humorous Message Bubble */}
-              <div className="hidden sm:block absolute top-1/2 -right-16 translate-x-full -translate-y-1/2 w-[180px] pointer-events-none">
+              <div className="hidden lg:block absolute top-1/2 -right-16 translate-x-full -translate-y-1/2 w-[180px] pointer-events-none">
                 <div className="relative bg-surface/80 backdrop-blur-md border border-primary/30 p-3.5 rounded-2xl shadow-xl text-center">
                   {/* Bubble tail pointing left */}
                   <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-4 h-4 bg-surface/90 border-l border-b border-primary/30 rotate-45"></div>
-                  <p className="text-[13.5px] font-medium text-main m-0 leading-relaxed">
-                    Hãy tham gia vòng quay may mắn để <span className="text-primary font-bold">test nhân phẩm</span>, biết đâu gỡ lại được tiền cước! 🤪🏸
+                  <p className="text-[13px] font-medium text-main m-0 leading-relaxed">
+                    {gameInfo.bubbleText}
                   </p>
                 </div>
               </div>
@@ -356,7 +386,7 @@ const PaymentPage = () => {
                 <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 12a8 8 0 11-2.4-5.7M20 4v5h-5" />
                 </svg>
-                {spinning ? 'Đang quay…' : 'Quay để thử vận may'}
+                {spinning ? gameInfo.spinningText : gameInfo.actionText}
               </button>
             ) : lucky.cancelled ? (
               <div className="flex flex-col items-center gap-1.5 text-center">
@@ -372,7 +402,7 @@ const PaymentPage = () => {
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 12a8 8 0 11-2.4-5.7M20 4v5h-5" />
                   </svg>
-                  {spinning ? 'Đang quay…' : 'Cay quá, phục thù!'}
+                  {spinning ? gameInfo.spinningText : 'Cay quá, phục thù!'}
                 </button>
               </div>
             ) : (
@@ -390,7 +420,7 @@ const PaymentPage = () => {
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 12a8 8 0 11-2.4-5.7M20 4v5h-5" />
                     </svg>
-                    {spinning ? 'Đang quay…' : 'Quay để thử vận may'}
+                    {spinning ? gameInfo.spinningText : gameInfo.actionText}
                   </button>
                   {discount > 0 && (
                     <button
@@ -427,7 +457,7 @@ const PaymentPage = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12V5a1 1 0 011-1h7l8 8-8 8-8-8z" />
                     <circle cx="8.5" cy="8.5" r="1.2" strokeWidth={2} />
                   </svg>
-                  Vòng quay may mắn −{formatCurrency(discount)}
+                  {gameInfo.name || 'Mini-game may mắn'} −{formatCurrency(discount)}
                 </span>
               </p>
             )}

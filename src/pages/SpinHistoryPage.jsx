@@ -179,9 +179,16 @@ const SpinHistoryPage = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 font-bold text-main">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full ${record.discount > 0 ? 'bg-primary/10 text-primary' : 'bg-surface text-muted'}`}>
-                            {record.discount > 0 ? '🎁' : '😢'} {record.prizeLabel}
-                          </span>
+                          <div className="flex flex-col gap-1 items-start">
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full ${record.discount > 0 ? 'bg-primary/10 text-primary' : 'bg-surface text-muted'}`}>
+                              {record.discount > 0 ? '🎁' : '😢'} {record.prizeLabel}
+                            </span>
+                            {record.gameType && (
+                              <span className="text-[11px] text-muted font-normal">
+                                {record.gameType === 'cards' ? '🃏 Lật thẻ bài' : record.gameType === 'boxes' ? '🎁 Hộp quà bí ẩn' : '🎡 Vòng quay'}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className={`px-6 py-4 font-extrabold ${record.discount > 0 ? 'text-success' : 'text-muted'}`}>
                           {record.discount > 0 ? formatCurrency(record.discount) : '0đ'}

@@ -154,7 +154,7 @@ const PrizePopup = ({ open, prize, discount, newAmount, isLimitReached, isAmount
             </h2>
 
             <p className="mt-3 text-sm text-muted leading-relaxed m-0 px-2">
-              Mỗi tuần chỉ được thử nhân phẩm tối đa 2 lần thôi má ơi! Dành cơ hội cho người khác với, tham thì thâm đó nha 🤪
+              Mỗi tuần chỉ được thử nhân phẩm 1 lần thôi má ơi! Dành cơ hội cho người khác với, tham thì thâm đó nha 🤪
             </p>
 
             <button type="button" autoFocus onClick={onClose} className="btn-primary w-full h-12 mt-6 text-[15px]">

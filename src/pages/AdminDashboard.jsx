@@ -1,13 +1,35 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import LuckyWheel from '../components/LuckyWheel';
+import CardFlipGame from '../components/CardFlipGame';
+import MysteryBoxGame from '../components/MysteryBoxGame';
 import toast from 'react-hot-toast';
+
+const DEMO_PRIZES = [
+  { id: 'cash1', label: '10.000đ', short: '10K', kind: 'cash', value: 10000 },
+  { id: 'cash2', label: '2.000đ', short: '2K', kind: 'cash', value: 2000 },
+  { id: 'cash3', label: '15.000đ', short: '15K', kind: 'cash', value: 15000 },
+  { id: 'cash4', label: '4.000đ', short: '4K', kind: 'cash', value: 4000 },
+  { id: 'cash5', label: '5.000đ', short: '5K', kind: 'cash', value: 5000 },
+  { id: 'half', label: 'Giảm 50%', short: '50%', kind: 'percent', value: 50 },
+  { id: 'none', label: 'Chúc bạn may mắn lần sau', short: 'Lần sau', kind: 'none', value: 0 }
+];
 
 const AdminDashboard = () => {
   const [members, setMembers] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('members');
+
+  // Game Setting states
+  const [gameSetting, setGameSetting] = useState(null);
+  const [selectedGameMode, setSelectedGameMode] = useState('auto');
+  const [selectedManualGame, setSelectedManualGame] = useState('wheel');
+  const [previewGame, setPreviewGame] = useState('wheel');
+  const [previewSpinning, setPreviewSpinning] = useState(false);
+  const [previewPrize, setPreviewPrize] = useState(null);
+  const [savingGameSetting, setSavingGameSetting] = useState(false);
 
   // Search
   const [memberSearch, setMemberSearch] = useState('');
@@ -47,11 +69,57 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchMembers();
+    fetchGameSetting();
   }, []);
 
   useEffect(() => {
     fetchTransactions();
   }, [txMonth, txYear]);
+
+  const fetchGameSetting = async () => {
+    try {
+      const res = await api.get('/payments/game-setting');
+      if (res.data?.success) {
+        setGameSetting(res.data.data);
+        setSelectedGameMode(res.data.data.mode || 'auto');
+        setSelectedManualGame(res.data.data.manualGame || 'wheel');
+        setPreviewGame(res.data.data.activeGame || 'wheel');
+      }
+    } catch (error) {
+      console.error('Fetch game setting error:', error);
+    }
+  };
+
+  const handleSaveGameSetting = async () => {
+    setSavingGameSetting(true);
+    try {
+      const res = await api.put('/payments/game-setting', {
+        mode: selectedGameMode,
+        manualGame: selectedManualGame
+      });
+      if (res.data?.success) {
+        setGameSetting(res.data.data);
+        toast.success('Đã lưu cấu hình trò chơi thành công!');
+      }
+    } catch (error) {
+      console.error('Update game setting error:', error);
+      toast.error('Lỗi khi lưu cấu hình trò chơi');
+    } finally {
+      setSavingGameSetting(false);
+    }
+  };
+
+  const handleTestPreviewPlay = () => {
+    if (previewSpinning) return;
+    setPreviewSpinning(true);
+    setPreviewPrize('cash2');
+  };
+
+  const handleTestPreviewEnd = () => {
+    setPreviewSpinning(false);
+    setPreviewPrize(null);
+    toast.success('Demo: Bạn vừa trúng 2.000đ! 🎉');
+  };
 
   const fetchMembers = async () => {
     try {
@@ -352,6 +420,16 @@ const AdminDashboard = () => {
         >
           📜 Lịch sử GD ({transactions.length})
         </button>
+        <button
+          onClick={() => setActiveTab('games')}
+          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+            activeTab === 'games'
+              ? 'bg-primary/20 text-primary-light border border-primary/30'
+              : 'text-muted hover:text-main hover:bg-surface-hover'
+          }`}
+        >
+          🎮 Trò chơi tuần ({gameSetting?.activeGame === 'cards' ? 'Lật thẻ' : gameSetting?.activeGame === 'boxes' ? 'Hộp quà' : 'Vòng quay'})
+        </button>
       </div>
 
       {/* Members Tab */}
@@ -504,6 +582,243 @@ const AdminDashboard = () => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Games Tab */}
+      {activeTab === 'games' && (
+        <div className="animate-fade-in space-y-6">
+          {/* Current Status Banner */}
+          <div className="glass-card p-6 border-l-4 border-l-primary flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🏸</span>
+                <h3 className="text-lg font-bold text-main m-0">
+                  Trò chơi đang hoạt động: <span className="text-primary font-black">{gameSetting?.gameInfo?.name || 'Vòng quay may mắn'}</span>
+                </h3>
+              </div>
+              <p className="text-sm text-muted mt-1 m-0">
+                Tuần hiện tại: <span className="font-semibold text-main">Tuần #{gameSetting?.weekNo}</span> · Chế độ:{' '}
+                <span className="font-semibold text-primary-light">
+                  {gameSetting?.mode === 'auto' ? '🔄 Tự động xoay tua (Thứ 2 hàng tuần)' : '✋ Cố định thủ công'}
+                </span>
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+                Tỉ lệ: 75% trượt · 15% 2K · 1 lượt/tuần
+              </span>
+            </div>
+          </div>
+
+          {/* Mode Configuration Card */}
+          <div className="glass-card p-6">
+            <h4 className="text-base font-bold text-main mb-4 flex items-center gap-2">
+              <span>⚙️</span> Cấu hình cơ chế trò chơi
+            </h4>
+
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+              {/* Option 1: Auto Rotation */}
+              <div
+                onClick={() => setSelectedGameMode('auto')}
+                className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+                  selectedGameMode === 'auto'
+                    ? 'border-primary bg-primary/10 shadow-lg shadow-primary/10'
+                    : 'border-border-color bg-surface/40 hover:border-border-color/80'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🔄</span>
+                    <span className="font-bold text-main text-base">Tự động xoay tua theo tuần (Khuyên dùng)</span>
+                  </div>
+                  <input
+                    type="radio"
+                    name="gameMode"
+                    checked={selectedGameMode === 'auto'}
+                    onChange={() => setSelectedGameMode('auto')}
+                    className="accent-emerald-500 w-4 h-4 cursor-pointer"
+                  />
+                </div>
+                <p className="text-xs text-muted leading-relaxed m-0 pl-8">
+                  Hệ thống tự động luân phiên sang trò mới vào 00:00 mỗi Thứ 2. Tuần hoàn: 🎡 Vòng quay ➔ 🃏 Lật thẻ bài ➔ 🎁 Hộp quà ➔ Lặp lại.
+                </p>
+              </div>
+
+              {/* Option 2: Manual Game Selection */}
+              <div
+                onClick={() => setSelectedGameMode('manual')}
+                className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+                  selectedGameMode === 'manual'
+                    ? 'border-primary bg-primary/10 shadow-lg shadow-primary/10'
+                    : 'border-border-color bg-surface/40 hover:border-border-color/80'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">✋</span>
+                    <span className="font-bold text-main text-base">Cố định trò chơi thủ công</span>
+                  </div>
+                  <input
+                    type="radio"
+                    name="gameMode"
+                    checked={selectedGameMode === 'manual'}
+                    onChange={() => setSelectedGameMode('manual')}
+                    className="accent-emerald-500 w-4 h-4 cursor-pointer"
+                  />
+                </div>
+                <p className="text-xs text-muted leading-relaxed m-0 pl-8">
+                  Chỉ định một trò chơi cụ thể để tất cả thành viên chơi, không tự động đổi theo tuần cho đến khi bạn thay đổi lại.
+                </p>
+              </div>
+            </div>
+
+            {/* If Manual is chosen, display 3 game choices */}
+            {selectedGameMode === 'manual' && (
+              <div className="mb-6 animate-slide-up p-4 bg-surface/60 rounded-2xl border border-border-color">
+                <p className="text-sm font-semibold text-main mb-3">Chọn trò chơi muốn kích hoạt cố định:</p>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  {[
+                    { id: 'wheel', name: '🎡 Vòng quay may mắn', desc: 'Vòng quay 7 ô sắc màu' },
+                    { id: 'cards', name: '🃏 Lật thẻ bài may mắn', desc: '3 thẻ bài ma thuật 3D' },
+                    { id: 'boxes', name: '🎁 Hộp quà bí ẩn', desc: '3 hộp quà bung nắp hào quang' }
+                  ].map((g) => (
+                    <div
+                      key={g.id}
+                      onClick={() => setSelectedManualGame(g.id)}
+                      className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                        selectedManualGame === g.id
+                          ? 'border-primary bg-primary/20 text-main font-bold shadow-md'
+                          : 'border-border-color bg-surface text-muted hover:text-main'
+                      }`}
+                    >
+                      <p className="text-sm m-0">{g.name}</p>
+                      <p className="text-[11px] text-muted m-0 mt-1">{g.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleSaveGameSetting}
+              disabled={savingGameSetting}
+              className="btn-primary py-2.5 px-6 text-sm flex items-center gap-2"
+            >
+              {savingGameSetting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Đang lưu cấu hình…
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Lưu cấu hình trò chơi
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Live Preview & Testing Area */}
+          <div className="glass-card p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+              <div>
+                <h4 className="text-base font-bold text-main m-0 flex items-center gap-2">
+                  <span>👀</span> Xem trước & Test trải nghiệm 3 trò chơi
+                </h4>
+                <p className="text-xs text-muted m-0 mt-1">
+                  Thử nghiệm trực tiếp hiệu ứng quay/lật/mở hộp để kiểm tra đồ hoạ và cảm giác của người chơi.
+                </p>
+              </div>
+
+              {/* Switch Preview Game */}
+              <div className="flex gap-1.5 p-1 bg-surface rounded-xl border border-border-color">
+                <button
+                  type="button"
+                  onClick={() => { setPreviewGame('wheel'); setPreviewSpinning(false); setPreviewPrize(null); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    previewGame === 'wheel' ? 'bg-primary text-black' : 'text-muted hover:text-main'
+                  }`}
+                >
+                  🎡 Vòng quay
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPreviewGame('cards'); setPreviewSpinning(false); setPreviewPrize(null); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    previewGame === 'cards' ? 'bg-primary text-black' : 'text-muted hover:text-main'
+                  }`}
+                >
+                  🃏 Lật thẻ bài
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPreviewGame('boxes'); setPreviewSpinning(false); setPreviewPrize(null); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    previewGame === 'boxes' ? 'bg-primary text-black' : 'text-muted hover:text-main'
+                  }`}
+                >
+                  🎁 Hộp quà
+                </button>
+              </div>
+            </div>
+
+            {/* Interactive Preview Box */}
+            <div className="bg-dark/60 rounded-2xl border border-border-color p-6 sm:p-10 flex flex-col items-center justify-center min-h-[300px]">
+              <div className="mb-4">
+                {previewGame === 'wheel' && (
+                  <LuckyWheel
+                    prizes={DEMO_PRIZES}
+                    spinning={previewSpinning}
+                    resultPrizeId={previewPrize}
+                    onSpinEnd={handleTestPreviewEnd}
+                    size="240px"
+                  />
+                )}
+                {previewGame === 'cards' && (
+                  <CardFlipGame
+                    prizes={DEMO_PRIZES}
+                    spinning={previewSpinning}
+                    resultPrizeId={previewPrize}
+                    onSpinEnd={handleTestPreviewEnd}
+                    onPlay={handleTestPreviewPlay}
+                  />
+                )}
+                {previewGame === 'boxes' && (
+                  <MysteryBoxGame
+                    prizes={DEMO_PRIZES}
+                    spinning={previewSpinning}
+                    resultPrizeId={previewPrize}
+                    onSpinEnd={handleTestPreviewEnd}
+                    onPlay={handleTestPreviewPlay}
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={handleTestPreviewPlay}
+                  disabled={previewSpinning}
+                  className="btn-primary py-2 px-5 text-xs shadow-md"
+                >
+                  {previewSpinning ? 'Đang chạy demo…' : '▶️ Bấm chơi thử (Demo giải 2.000đ)'}
+                </button>
+                {previewSpinning && (
+                  <button
+                    type="button"
+                    onClick={() => { setPreviewSpinning(false); setPreviewPrize(null); }}
+                    className="btn-secondary py-2 px-4 text-xs"
+                  >
+                    ⏹️ Dừng lại
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
