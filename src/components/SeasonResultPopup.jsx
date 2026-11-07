@@ -5,7 +5,6 @@ import api from '../api/axios';
 
 const CONFETTI_COLORS = ['#E8C14A', '#34D399', '#5EEAD4', '#A78BFA', '#F9A8D4', '#FFB45E', '#FFFFFF'];
 
-const NEWS_URL_LABEL = 'badminton-saturday.onrender.com/news';
 
 // Group photos shown in the free corners beside the champion card
 const CDN = 'https://res.cloudinary.com/dv7w1z8si/image/upload';
@@ -286,8 +285,9 @@ const SeasonResultPopup = () => {
             </h2>
             <p className="season-lead">
               Vậy là <strong>Season 2 – 6 anh em siêu nhân</strong> đã khép lại sau những pha cầu nảy lửa, những cú
-              đập để đời và vô vàn tràng cười. Dưới đây là ba đội xuất sắc nhất mùa giải.
+              đập để đời và vô vàn tràng cười.
             </p>
+            <p className="season-lead-hl">✨ Dưới đây là ba đội xuất sắc nhất mùa giải ✨</p>
           </header>
 
           <div className="season-podium">
@@ -351,12 +351,14 @@ const SeasonResultPopup = () => {
             🎉 Cảm ơn các nhà đầu tư vàng và tất cả anh em đã cùng tạo nên một mùa giải siêu nhân đầy tiếng cười!
           </p>
 
-          <p className="season-detail">
-            Xem chi tiết tại{' '}
-            <Link to={postId ? `/news?post=${postId}` : '/news'} onClick={close}>
-              {NEWS_URL_LABEL}
-            </Link>
-          </p>
+          <Link
+            to={postId ? `/news?post=${postId}` : '/news'}
+            onClick={close}
+            className="season-detail-btn"
+          >
+            Xem chi tiết bài viết
+            <span aria-hidden="true">→</span>
+          </Link>
 
           <div className="season-actions">
             <a href="/season2-result.png" target="_blank" rel="noreferrer" className="season-link">
