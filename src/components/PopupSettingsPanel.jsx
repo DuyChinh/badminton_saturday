@@ -21,6 +21,7 @@ const toIso = (value) => (value ? new Date(value).toISOString() : null);
 
 const PopupSettingsPanel = () => {
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState('live');
   const [isActive, setIsActive] = useState(true);
@@ -41,7 +42,14 @@ const PopupSettingsPanel = () => {
     api
       .get('/popup-config')
       .then((res) => alive && apply(res.data.data))
-      .catch(() => toast.error('Không tải được cấu hình popup'))
+      .catch((err) => {
+        if (!alive) return;
+        setLoadError(
+          err.response?.status === 404
+            ? 'Backend chưa có API popup-config. Hãy deploy lại backend (Render) rồi tải lại trang.'
+            : 'Không tải được cấu hình popup. Kiểm tra kết nối rồi tải lại trang.'
+        );
+      })
       .finally(() => alive && setLoaded(true));
     return () => {
       alive = false;
@@ -85,12 +93,18 @@ const PopupSettingsPanel = () => {
             Hiện mỗi lần mở trang (kể cả khách chưa đăng nhập) khi đang bật và nằm trong khoảng thời gian bên dưới.
           </p>
         </div>
-        <span className={`px-3 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${st.cls}`}>
-          {st.dot} {st.label}
-        </span>
+        {loaded && !loadError && (
+          <span className={`px-3 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap ${st.cls}`}>
+            {st.dot} {st.label}
+          </span>
+        )}
       </div>
 
-      <div className="glass-card p-6 space-y-6">
+      {loadError && (
+        <div className="glass-card p-4 border-l-4 border-l-danger text-sm text-main">⚠️ {loadError}</div>
+      )}
+
+      <div className={`glass-card p-6 space-y-6 ${loadError ? 'opacity-50 pointer-events-none' : ''}`}>
         {/* On / off */}
         <label className="flex items-center justify-between gap-4 cursor-pointer">
           <span>
@@ -102,7 +116,7 @@ const PopupSettingsPanel = () => {
             role="switch"
             aria-checked={isActive}
             onClick={() => setIsActive((v) => !v)}
-            disabled={!loaded}
+            disabled={!loaded || Boolean(loadError)}
             className={`relative w-14 h-8 rounded-full transition-colors cursor-pointer shrink-0 ${
               isActive ? 'bg-primary' : 'bg-surface-hover border border-border-color'
             }`}
@@ -158,7 +172,7 @@ const PopupSettingsPanel = () => {
           </p>
         </div>
 
-        <button type="button" onClick={handleSave} disabled={saving || !loaded} className="btn-primary py-2.5 px-6 text-sm">
+        <button type="button" onClick={handleSave} disabled={saving || !loaded || Boolean(loadError)} className="btn-primary py-2.5 px-6 text-sm">
           {saving ? 'Đang lưu…' : 'Lưu cấu hình popup'}
         </button>
       </div>

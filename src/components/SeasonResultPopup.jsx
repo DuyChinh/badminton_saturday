@@ -171,7 +171,8 @@ const Avatar = ({ name, url }) => (
  * the server decides `visible`). It closes with the X button, the backdrop, the footer
  * button or Esc. Dismissal is deliberately not persisted, so a refresh shows it again;
  * it lives at app level so moving between routes does not re-open it.
- * If the config cannot be fetched the popup stays hidden.
+ * If the config cannot be fetched the popup stays hidden, except on a 404 (backend not
+ * updated yet), where it falls back to always-on.
  */
 const SeasonResultPopup = () => {
   const [open, setOpen] = useState(false);
@@ -189,7 +190,11 @@ const SeasonResultPopup = () => {
         setPostId(res.data.data.postId || '');
         setOpen(true);
       })
-      .catch(() => {});
+      .catch((err) => {
+        // Backend without /popup-config yet (404): keep the original always-on behaviour.
+        // Any other failure (offline, 5xx) leaves the popup hidden.
+        if (alive && err.response?.status === 404) setOpen(true);
+      });
     return () => {
       alive = false;
     };
