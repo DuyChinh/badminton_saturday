@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -31,6 +31,33 @@ const NewsBoard = () => {
   ]);
 
   const [selectedImage, setSelectedImage] = useState(null);
+
+  // Deep link: /news?post=<id> scrolls to that post and highlights it once
+  const [searchParams] = useSearchParams();
+  const targetPostId = searchParams.get('post');
+  const [highlightId, setHighlightId] = useState(null);
+  const handledTarget = useRef(null);
+
+  useEffect(() => {
+    if (!targetPostId || loading || handledTarget.current === targetPostId) return undefined;
+    const el = document.getElementById(`post-${targetPostId}`);
+    if (!el) return undefined;
+    handledTarget.current = targetPostId;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setHighlightId(targetPostId);
+    const t = setTimeout(() => setHighlightId(null), 3500);
+    return () => clearTimeout(t);
+  }, [targetPostId, loading, posts]);
+
+  const handleCopyLink = async (postId) => {
+    const url = `${window.location.origin}/news?post=${postId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Đã sao chép liên kết bài viết');
+    } catch {
+      window.prompt('Sao chép liên kết bài viết:', url);
+    }
+  };
 
   useEffect(() => {
     fetchPosts(true);
@@ -544,7 +571,10 @@ const NewsBoard = () => {
             posts.map((post) => (
               <article
                 key={post._id}
-                className="glass-card p-5 sm:p-7 overflow-hidden transition-all hover:border-primary/35 relative"
+                id={`post-${post._id}`}
+                className={`glass-card p-5 sm:p-7 overflow-hidden transition-all hover:border-primary/35 relative scroll-mt-24 ${
+                  highlightId === post._id ? 'ring-2 ring-primary shadow-[0_0_40px_var(--ring-primary)]' : ''
+                }`}
               >
                 {/* Post Author & Meta Header */}
                 <header className="flex justify-between items-start gap-3 mb-5 pb-4 border-b border-border-light">
@@ -587,8 +617,20 @@ const NewsBoard = () => {
                     </div>
                   </div>
 
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleCopyLink(post._id)}
+                      className="w-9 h-9 rounded-xl bg-surface text-muted hover:text-primary hover:bg-primary/12 flex items-center justify-center transition-colors cursor-pointer"
+                      title="Sao chép liên kết bài viết"
+                      aria-label="Sao chép liên kết bài viết"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 14a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1 1M14 10a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1-1" />
+                      </svg>
+                    </button>
                   {user?.role === 'admin' && (
-                    <div className="flex items-center gap-1 shrink-0">
+                    <>
                       <button
                         type="button"
                         onClick={() => handleEdit(post)}
@@ -617,8 +659,9 @@ const NewsBoard = () => {
                           />
                         </svg>
                       </button>
-                    </div>
+                    </>
                   )}
+                  </div>
                 </header>
 
                 {/* Post Content Blocks */}

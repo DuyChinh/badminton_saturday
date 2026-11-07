@@ -729,3 +729,304 @@ body {
     transition: none !important;
   }
 }
+
+/* ==========================================================================
+   Season result popup (opens on every visit)
+   ========================================================================== */
+@keyframes seasonRise {
+  from { opacity: 0; transform: translateY(34px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes seasonBob {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50%      { transform: translateY(-5px) rotate(6deg); }
+}
+@keyframes seasonGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(232, 193, 74, 0.5), 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 50px rgba(232, 193, 74, 0.18); }
+  50%      { box-shadow: 0 0 0 1px rgba(232, 193, 74, 0.8), 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 90px rgba(232, 193, 74, 0.38); }
+}
+@keyframes seasonTitle { to { background-position: 200% 0; } }
+
+.season-overlay { padding: 16px; }
+
+.season-card {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  max-height: calc(100dvh - 32px);
+  border-radius: 28px;
+  overflow: hidden;
+  color: var(--text-main);
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(232, 193, 74, 0.2), transparent 60%),
+    linear-gradient(180deg, var(--bg-card), var(--bg-main));
+  border: 1px solid rgba(232, 193, 74, 0.45);
+  animation: seasonRise 0.65s cubic-bezier(0.2, 1.1, 0.35, 1) both, seasonGlow 3.2s ease-in-out 0.7s infinite;
+}
+.season-card .prize-rays { top: 14%; width: 640px; height: 640px; z-index: 0; }
+.season-card .season-sheen { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1; }
+
+.season-scroll {
+  position: relative;
+  z-index: 2;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 30px 28px 24px;
+  text-align: center;
+}
+
+.season-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--glass-blur);
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.15s, transform 0.15s;
+}
+.season-close:hover { color: var(--text-main); transform: rotate(90deg); }
+
+.season-eyebrow {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(232, 193, 74, 0.12);
+  border: 1px solid rgba(232, 193, 74, 0.4);
+}
+.season-title {
+  margin: 14px 0 0;
+  font-size: clamp(26px, 5vw, 38px);
+  font-weight: 800;
+  background: linear-gradient(100deg, #E8C14A, #fff3c4, #34D399, #E8C14A);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: seasonTitle 5s linear infinite;
+}
+.season-lead {
+  margin: 10px auto 0;
+  max-width: 560px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.season-lead strong { color: var(--text-main); }
+
+/* Podium: silver | gold (taller) | bronze */
+.season-podium {
+  display: grid;
+  grid-template-columns: 1fr 1.18fr 1fr;
+  align-items: end;
+  gap: 12px;
+  margin-top: 52px;
+}
+.season-step {
+  position: relative;
+  padding: 28px 10px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--bg-surface) 70%, transparent);
+  animation: seasonRise 0.6s cubic-bezier(0.2, 1.1, 0.35, 1) both;
+  animation-delay: calc(0.35s + (var(--i) * 0.12s));
+}
+.season-gold {
+  padding-top: 32px;
+  padding-bottom: 18px;
+  border-color: rgba(232, 193, 74, 0.75);
+  background: linear-gradient(180deg, rgba(232, 193, 74, 0.2), rgba(232, 193, 74, 0.03));
+  box-shadow: 0 18px 40px -18px rgba(232, 193, 74, 0.55);
+}
+.season-silver { border-color: rgba(196, 204, 212, 0.45); }
+.season-bronze { border-color: rgba(201, 138, 90, 0.5); }
+
+.season-badge {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #1b1503;
+  background: #C4CCD4;
+}
+.season-gold .season-badge { background: #E8C14A; }
+.season-bronze .season-badge { background: #C98A5A; }
+
+.season-crown {
+  position: absolute;
+  top: -46px;
+  left: 50%;
+  margin-left: -14px;
+  font-size: 26px;
+  animation: seasonBob 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(232, 193, 74, 0.6));
+}
+
+.season-team {
+  margin: 8px 0 0;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--text-main);
+}
+.season-gold .season-team { font-size: 15.5px; color: var(--gold); }
+.season-name { display: block; }
+.season-amp { color: var(--text-muted); font-weight: 600; font-size: 12px; }
+
+.season-rewards {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--border-light);
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+.season-reward {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--bg-main) 55%, transparent);
+  border: 1px solid var(--border-light);
+}
+.season-reward-text b { color: var(--text-main); font-weight: 800; }
+.season-gold .season-reward { color: var(--text-main); }
+.season-art-wrap { position: relative; flex: none; display: grid; place-items: center; width: 60px; height: 48px; }
+.season-art { height: 46px; width: auto; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4)); animation: seasonBob 3.4s ease-in-out infinite; }
+.season-art-wide { height: 42px; }
+.season-art-emoji { font-size: 32px; line-height: 46px; }
+.season-qty {
+  position: absolute;
+  right: -4px;
+  bottom: -5px;
+  min-width: 22px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 16px;
+  text-align: center;
+  color: #1b1503;
+  background: #E8C14A;
+  border: 2px solid var(--bg-card);
+}
+
+/* Avatars */
+.season-avatars { position: relative; display: flex; justify-content: center; padding-bottom: 10px; }
+.season-avatar {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 3px solid #C4CCD4;
+  background: var(--bg-surface);
+  box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.6);
+}
+.season-avatar + .season-avatar { margin-left: -14px; }
+.season-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.season-avatar-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--on-primary);
+  background: linear-gradient(135deg, var(--primary-light), var(--accent));
+}
+.season-gold .season-avatar { width: 66px; height: 66px; border-color: #E8C14A; }
+.season-bronze .season-avatar { border-color: #C98A5A; }
+.season-medal {
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  transform: translateX(-50%);
+  font-size: 22px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+  animation: seasonBob 2.8s ease-in-out infinite;
+}
+
+.season-detail { margin: 14px 0 0; font-size: 13px; color: var(--text-muted); }
+.season-detail a {
+  color: var(--primary-light);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  word-break: break-all;
+}
+.season-detail a:hover { color: var(--text-main); }
+
+.season-note {
+  margin: 18px auto 0;
+  max-width: 520px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.season-thanks {
+  margin: 12px auto 0;
+  max-width: 520px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.season-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.season-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.season-link:hover { color: var(--text-main); }
+.season-cta { height: 46px; padding: 0 26px; font-size: 14.5px; }
+
+/* Phones: stack the podium with the champion first */
+@media (max-width: 640px) {
+  .season-scroll { padding: 26px 16px 18px; }
+  .season-podium { grid-template-columns: 1fr; gap: 20px; margin-top: 26px; }
+  .season-gold { order: -1; }
+  .season-bronze { order: 2; }
+  .season-silver { order: 1; }
+  .season-crown { top: -44px; }
+  .season-name { display: inline; }
+  .season-amp { font-size: inherit; }
+  .season-actions { flex-direction: column-reverse; gap: 10px; }
+  .season-cta { width: 100%; }
+}

@@ -1721,7 +1721,9 @@ const TournamentPage = () => {
           {/* Podium Showcase */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 items-end pt-4">
             {/* Champion (1st Place) */}
-            <div className="sheen glass-card p-6 sm:p-7 text-center border-2 border-amber-400/70 bg-gradient-to-b from-amber-500/20 via-amber-400/5 to-transparent shadow-2xl relative flex flex-col justify-between order-1 md:order-2 md:-translate-y-3">
+            <div className="glass-card p-6 sm:p-7 text-center border-2 border-amber-400/70 bg-gradient-to-b from-amber-500/20 via-amber-400/5 to-transparent shadow-2xl relative flex flex-col justify-between order-1 md:order-2 md:-translate-y-3">
+              {/* Sheen is on its own clipped layer so the badge can overhang the card edge */}
+              <div aria-hidden="true" className="sheen absolute inset-0 rounded-[inherit] pointer-events-none" />
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-950 font-black text-[11px] px-4 py-1 rounded-full uppercase tracking-widest shadow-md whitespace-nowrap">
                 👑 QUÁN QUÂN
               </div>

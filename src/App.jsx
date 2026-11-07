@@ -13,6 +13,7 @@ import TransactionHistory from './pages/TransactionHistory';
 import SpinHistoryPage from './pages/SpinHistoryPage';
 import NewsBoard from './pages/NewsBoard';
 import TournamentPage from './pages/TournamentPage';
+import SeasonResultPopup from './components/SeasonResultPopup';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
               },
             }}
           />
+          <SeasonResultPopup />
           <Layout>
             <Routes>
               <Route path="/" element={<PublicView />} />
