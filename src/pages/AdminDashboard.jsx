@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from '../utils/formatters';
 import LuckyWheel from '../components/LuckyWheel';
 import CardFlipGame from '../components/CardFlipGame';
 import MysteryBoxGame from '../components/MysteryBoxGame';
+import PopupSettingsPanel from '../components/PopupSettingsPanel';
 import toast from 'react-hot-toast';
 
 const DEMO_PRIZES = [
@@ -424,7 +425,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         <button
           onClick={() => setActiveTab('members')}
           className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
@@ -455,7 +456,20 @@ const AdminDashboard = () => {
         >
           🎮 Trò chơi tuần ({gameSetting?.activeGame === 'cards' ? 'Lật thẻ' : gameSetting?.activeGame === 'boxes' ? 'Hộp quà' : 'Vòng quay'})
         </button>
+        <button
+          onClick={() => setActiveTab('popup')}
+          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+            activeTab === 'popup'
+              ? 'bg-primary/20 text-primary-light border border-primary/30'
+              : 'text-muted hover:text-main hover:bg-surface-hover'
+          }`}
+        >
+          🎉 Popup chúc mừng
+        </button>
       </div>
+
+      {/* Popup Tab */}
+      {activeTab === 'popup' && <PopupSettingsPanel />}
 
       {/* Members Tab */}
       {activeTab === 'members' && (

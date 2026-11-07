@@ -5,11 +5,15 @@ import api from '../api/axios';
 
 const CONFETTI_COLORS = ['#E8C14A', '#34D399', '#5EEAD4', '#A78BFA', '#F9A8D4', '#FFB45E', '#FFFFFF'];
 
-// Link to the post announcing the Season 2 result. Paste the post's id here
-// (NewsBoard has a "Sao chép liên kết" button on every post); until then the link opens /news.
-const SEASON_RESULT_POST_ID = '';
 const NEWS_URL_LABEL = 'badminton-saturday.onrender.com/news';
-const NEWS_PATH = SEASON_RESULT_POST_ID ? `/news?post=${SEASON_RESULT_POST_ID}` : '/news';
+
+// Group photos shown in the free corners beside the champion card
+const CDN = 'https://res.cloudinary.com/dv7w1z8si/image/upload';
+const cdn = (width, path) => `${CDN}/w_${width},q_auto,f_auto/${path}`;
+const PHOTOS = {
+  silver: { path: 'v1794046474/edumap/posts/dqpemvdwfp7aio0tazjy.jpg', pos: '50% 42%', alt: 'Ảnh kỷ niệm Season 2 - Á quân' },
+  bronze: { path: 'v1794046473/edumap/posts/rkzwhlu1x0b2p4j0tmjn.jpg', pos: '50% 26%', alt: 'Ảnh kỷ niệm Season 2 - Giải ba' },
+};
 
 const PODIUM = [
   {
@@ -162,15 +166,34 @@ const Avatar = ({ name, url }) => (
 );
 
 /**
- * Season 2 wrap-up. Opens on every page load (guests included) and closes with
- * the X button, the backdrop, the footer button or Esc. State is deliberately not
- * persisted, so a refresh or a new visit shows it again; it lives at app level so
- * moving between routes does not re-open it.
+ * Season 2 wrap-up. Opens on every page load (guests included) while the admin has it
+ * switched on and the current time is inside the configured window (/popup-config;
+ * the server decides `visible`). It closes with the X button, the backdrop, the footer
+ * button or Esc. Dismissal is deliberately not persisted, so a refresh shows it again;
+ * it lives at app level so moving between routes does not re-open it.
+ * If the config cannot be fetched the popup stays hidden.
  */
 const SeasonResultPopup = () => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [postId, setPostId] = useState('');
   const [avatars, setAvatars] = useState({});
+  const [zoom, setZoom] = useState(null);
   const close = () => setOpen(false);
+
+  useEffect(() => {
+    let alive = true;
+    api
+      .get('/popup-config')
+      .then((res) => {
+        if (!alive || !res.data?.data?.visible) return;
+        setPostId(res.data.data.postId || '');
+        setOpen(true);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Avatars come from the public members list; initials stand in until (or unless) it loads
   useEffect(() => {
@@ -208,7 +231,12 @@ const SeasonResultPopup = () => {
 
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (e) => e.key === 'Escape' && setOpen(false);
+    // Esc peels off the photo viewer first, then the popup
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (zoom) setZoom(null);
+      else setOpen(false);
+    };
     window.addEventListener('keydown', onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -216,11 +244,13 @@ const SeasonResultPopup = () => {
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
     };
-  }, [open]);
+  }, [open, zoom]);
 
   if (!open) return null;
 
-  return createPortal(
+  return (
+    <>
+    {createPortal(
     <div className="modal-overlay season-overlay" style={{ zIndex: 120 }} onClick={close}>
       <div className="confetti-layer fixed" aria-hidden="true" style={{ zIndex: 121 }}>
         {pieces.map(({ id, ...style }) => (
@@ -257,7 +287,25 @@ const SeasonResultPopup = () => {
 
           <div className="season-podium">
             {PODIUM.map((p) => (
-              <article key={p.key} className={`season-step season-${p.key}`} style={{ '--i': p.place }}>
+              <div key={p.key} className={`season-col season-col-${p.key}`}>
+                {PHOTOS[p.key] && (
+                  <button
+                    type="button"
+                    className="season-photo"
+                    style={{ '--i': p.place }}
+                    onClick={() => setZoom(PHOTOS[p.key])}
+                    aria-label="Phóng to ảnh"
+                  >
+                    <img
+                      src={cdn(700, PHOTOS[p.key].path)}
+                      alt={PHOTOS[p.key].alt}
+                      loading="lazy"
+                      style={{ objectPosition: PHOTOS[p.key].pos }}
+                    />
+                    <span className="season-photo-zoom" aria-hidden="true">🔍</span>
+                  </button>
+                )}
+              <article className={`season-step season-${p.key}`} style={{ '--i': p.place }}>
                 <span className="season-badge">{p.badge}</span>
                 {p.place === 1 && (
                   <span className="season-crown" aria-hidden="true">
@@ -286,6 +334,7 @@ const SeasonResultPopup = () => {
                   ))}
                 </ul>
               </article>
+              </div>
             ))}
           </div>
 
@@ -299,7 +348,7 @@ const SeasonResultPopup = () => {
 
           <p className="season-detail">
             Xem chi tiết tại{' '}
-            <Link to={NEWS_PATH} onClick={close}>
+            <Link to={postId ? `/news?post=${postId}` : '/news'} onClick={close}>
               {NEWS_URL_LABEL}
             </Link>
           </p>
@@ -316,6 +365,18 @@ const SeasonResultPopup = () => {
       </div>
     </div>,
     document.body
+    )}
+    {zoom &&
+      createPortal(
+        <div className="season-lightbox" role="dialog" aria-modal="true" aria-label={zoom.alt} onClick={() => setZoom(null)}>
+          <button type="button" className="season-close season-lightbox-close" onClick={() => setZoom(null)} aria-label="Đóng ảnh">
+            ✕
+          </button>
+          <img src={cdn(1600, zoom.path)} alt={zoom.alt} onClick={(e) => e.stopPropagation()} />
+        </div>,
+        document.body
+      )}
+    </>
   );
 };
 

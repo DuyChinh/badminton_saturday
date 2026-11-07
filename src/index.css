@@ -828,10 +828,56 @@ body {
 .season-podium {
   display: grid;
   grid-template-columns: 1fr 1.18fr 1fr;
-  align-items: end;
+  align-items: stretch;
   gap: 12px;
   margin-top: 52px;
 }
+.season-col { display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; min-width: 0; }
+.season-photo {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 92px;
+  padding: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: zoom-in;
+  border: 1px solid rgba(232, 193, 74, 0.4);
+  background: var(--bg-surface);
+  box-shadow: 0 12px 26px -14px rgba(0, 0, 0, 0.7);
+  animation: seasonRise 0.6s cubic-bezier(0.2, 1.1, 0.35, 1) both;
+  animation-delay: calc(0.2s + (var(--i) * 0.12s));
+  transition: transform 0.2s, border-color 0.2s;
+}
+.season-photo:hover { transform: scale(1.03); border-color: #E8C14A; }
+.season-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.season-photo-zoom {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+}
+.season-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.92);
+  cursor: zoom-out;
+  animation: fadeIn 0.2s ease-out;
+}
+.season-lightbox img { max-width: 100%; max-height: 92dvh; object-fit: contain; border-radius: 14px; cursor: default; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7); }
+.season-lightbox-close { position: absolute; top: 14px; right: 14px; }
+
 .season-step {
   position: relative;
   padding: 28px 10px 14px;
@@ -1021,9 +1067,10 @@ body {
 @media (max-width: 640px) {
   .season-scroll { padding: 26px 16px 18px; }
   .season-podium { grid-template-columns: 1fr; gap: 20px; margin-top: 26px; }
-  .season-gold { order: -1; }
-  .season-bronze { order: 2; }
-  .season-silver { order: 1; }
+  .season-col-gold { order: -1; }
+  .season-col-silver { order: 1; }
+  .season-col-bronze { order: 2; }
+  .season-photo { flex: none; height: 170px; }
   .season-crown { top: -44px; }
   .season-name { display: inline; }
   .season-amp { font-size: inherit; }
